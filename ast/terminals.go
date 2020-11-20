@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+    "encoding/json"
 )
 
 /**
@@ -27,12 +28,18 @@ func (v *Variable) GetType() string {
 func (v *Variable) String() string {
 	return v.string
 }
+func (v *Variable) MarshalJSON() ([]byte, error) {
+    m := make(map[string]interface{})
+    m["t"] = "var"
+    m["v"] = v.string
+    return json.Marshal(m)
+}
 
 /**
  * Atom
  */
 type Atom struct {
-	string
+	string `json:"v"`
 }
 
 func (v *Atom) GetType() string {
@@ -40,6 +47,12 @@ func (v *Atom) GetType() string {
 }
 func (v *Atom) String() string {
 	return v.string
+}
+func (v *Atom) MarshalJSON() ([]byte, error) {
+    m := make(map[string]interface{})
+    m["t"] = "atom"
+    m["v"] = v.string
+    return json.Marshal(m)
 }
 
 /**
@@ -55,6 +68,12 @@ func (v *StringLiteral) GetType() string {
 func (v *StringLiteral) String() string {
 	return v.string
 }
+func (v *StringLiteral) MarshalJSON() ([]byte, error) {
+    m := make(map[string]interface{})
+    m["t"] = "str"
+    m["v"] = v.string
+    return json.Marshal(m)
+}
 
 /**
  * NumericLiteral
@@ -69,4 +88,11 @@ func (v *NumericLiteral) GetType() string {
 
 func (v *NumericLiteral) String() string {
 	return fmt.Sprintf("%f", v.float64)
+}
+
+func (v *NumericLiteral) MarshalJSON() ([]byte, error) {
+    m := make(map[string]interface{})
+    m["type"] = "num"
+    m["v"] = v.float64
+    return json.Marshal(m)
 }

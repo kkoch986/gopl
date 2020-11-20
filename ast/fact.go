@@ -3,11 +3,21 @@ package ast
 import (
 	"fmt"
 	"strings"
+    "encoding/json"
 )
 
+type Signature struct {
+	Functor string
+	Arity   int
+}
+
+func (s *Signature) String() string {
+	return fmt.Sprintf("%s/%d", s.Functor, s.Arity)
+}
+
 type Fact struct {
-	Head string
-	Args []Arg
+	Head string `json:"f"`
+	Args []Arg  `json:"a"`
 }
 
 func (f *Fact) GetType() string {
@@ -30,6 +40,18 @@ func (f *Fact) String() string {
 	}
 
 	return fmt.Sprintf("%s(%s)", f.Head, strings.Join(args, ","))
+}
+
+func (f *Fact) MarshalJSON() ([]byte, error) {
+    m := make(map[string]interface{})
+    m["t"] = "fact"
+    m["f"] = f.Head
+    m["a"] = f.Args
+    return json.Marshal(m)
+}
+
+func (f *Fact) Signature() *Signature {
+	return &Signature{f.Head, len(f.Args)}
 }
 
 func prettyPrintList(a []Arg) string {

@@ -1,4 +1,8 @@
+.envrc
+
 # Binaries for programs and plugins
+bin
+*.P
 *.exe
 *.exe~
 *.dll
