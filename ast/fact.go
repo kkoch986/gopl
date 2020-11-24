@@ -1,9 +1,9 @@
 package ast
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
-    "encoding/json"
 )
 
 type Signature struct {
@@ -17,11 +17,11 @@ func (s *Signature) String() string {
 
 type Fact struct {
 	Head string `json:"f"`
-	Args []Arg  `json:"a"`
+	Args []Term `json:"a"`
 }
 
-func (f *Fact) GetType() string {
-	return "Fact"
+func (f *Fact) GetType() TermType {
+	return T_Fact
 }
 
 func (f *Fact) String() string {
@@ -43,18 +43,18 @@ func (f *Fact) String() string {
 }
 
 func (f *Fact) MarshalJSON() ([]byte, error) {
-    m := make(map[string]interface{})
-    m["t"] = "fact"
-    m["f"] = f.Head
-    m["a"] = f.Args
-    return json.Marshal(m)
+	m := make(map[string]interface{})
+	m["t"] = "fact"
+	m["f"] = f.Head
+	m["a"] = f.Args
+	return json.Marshal(m)
 }
 
 func (f *Fact) Signature() *Signature {
 	return &Signature{f.Head, len(f.Args)}
 }
 
-func prettyPrintList(a []Arg) string {
+func prettyPrintList(a []Term) string {
 	if len(a) == 0 {
 		return ""
 	}
@@ -62,7 +62,7 @@ func prettyPrintList(a []Arg) string {
 	left := a[0]
 	right := a[1]
 
-	if right.GetType() == "Fact" && right.(*Fact).Head == "|" {
+	if right.GetType() == T_Fact && right.(*Fact).Head == "|" {
 		rightStr := prettyPrintList(right.(*Fact).Args)
 		if rightStr == "" {
 			return fmt.Sprintf("%s", left)

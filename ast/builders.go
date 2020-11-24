@@ -157,7 +157,7 @@ func BuildFact(b bsr.BSR) *Fact {
 
 	// Handle blank arg lists
 	if len(b.Label.Symbols()) <= 2 {
-		return &Fact{head, []Arg{}}
+		return &Fact{head, []Term{}}
 	}
 
 	// Next is a NT ArgList
@@ -176,7 +176,7 @@ func BuildList(b bsr.BSR) *Fact {
 	// TODO: maybe a better way to do this, i dont like using Alternate because its sensitive
 	//       to changes in the order things are written in the grammar
 	if b.Alternate() == 0 {
-		return buildArgListIntoListFact([]Arg{}, []Arg{})
+		return buildArgListIntoListFact([]Term{}, []Term{})
 	}
 
 	al := b.GetNTChildI(1)
@@ -192,7 +192,7 @@ func BuildList(b bsr.BSR) *Fact {
 			panic("Unexpected empty arglist in List parse")
 		}
 
-		return buildArgListIntoListFact(argSlice, []Arg{})
+		return buildArgListIntoListFact(argSlice, []Term{})
 	} else if t == "Cons" {
 		// Build the LHS arg list
 		lhs := BuildArgList(al.GetNTChildI(0))
@@ -210,12 +210,12 @@ func BuildList(b bsr.BSR) *Fact {
  * for example:
  *  1,2,3 becomes `|(1, |(2, |(3, |())))`
  */
-func buildArgListIntoListFact(lhs []Arg, rhs []Arg) *Fact {
+func buildArgListIntoListFact(lhs []Term, rhs []Term) *Fact {
 	if len(lhs) == 0 {
 		if len(rhs) == 0 {
-			return &Fact{"|", []Arg{}}
+			return &Fact{"|", []Term{}}
 		} else {
-			return buildArgListIntoListFact(rhs, []Arg{})
+			return buildArgListIntoListFact(rhs, []Term{})
 		}
 	} else if len(lhs) == 1 && len(rhs) == 1 {
 		// If the left hand side only has one element and theres a RHS with one element
@@ -224,7 +224,7 @@ func buildArgListIntoListFact(lhs []Arg, rhs []Arg) *Fact {
 		// the outcome should be `|(1, |(2, X))`
 		// If there are more than one things on the RHS, we will resolve that as a list itself
 		// above with a call to buildArgListIntoListFact
-		return &Fact{"|", []Arg{lhs[0], rhs[0]}}
+		return &Fact{"|", []Term{lhs[0], rhs[0]}}
 	}
 
 	// Build the tail
@@ -233,22 +233,22 @@ func buildArgListIntoListFact(lhs []Arg, rhs []Arg) *Fact {
 		panic("error building list tail")
 	}
 
-	return &Fact{"|", []Arg{lhs[0], tail}}
+	return &Fact{"|", []Term{lhs[0], tail}}
 }
 
-func BuildArgList(b bsr.BSR) []Arg {
+func BuildArgList(b bsr.BSR) []Term {
 	al := b.GetNTChildI(0)
 	t := al.Label.Head().String()
 
 	if t == "Arg" {
 		a := BuildArg(al)
 		if a != nil {
-			return []Arg{a}
+			return []Term{a}
 		}
 	} else if t == "ArgList" {
 		argList := BuildArgList(al)
 
-		ret := []Arg{}
+		ret := []Term{}
 		for _, v := range argList {
 			ret = append(ret, v)
 		}
@@ -265,13 +265,13 @@ func BuildArgList(b bsr.BSR) []Arg {
 	} else {
 		panic("Unknown ArgList type " + t)
 	}
-	return []Arg{}
+	return []Term{}
 }
 
-func BuildArg(b bsr.BSR) Arg {
+func BuildArg(b bsr.BSR) Term {
 	t := b.Label.Symbols()[0].String()
 
-	var ret Arg
+	var ret Term
 	switch t {
 	case "atom":
 		ret = BuildAtom(b.GetTChildI(0))

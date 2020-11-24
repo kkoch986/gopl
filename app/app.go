@@ -64,5 +64,20 @@ var App = &cli.App{
 				return nil
 			},
 		},
+		{
+			Name:    "shell",
+			Aliases: []string{"s", ""},
+			Usage:   "Enter the interactive query shell",
+			Flags:   []cli.Flag{},
+			Action: func(c *cli.Context) error {
+				shell := &QueryCLI{}
+				err := shell.Run()
+				if err != nil {
+					log.Fatal(err)
+					return err
+				}
+				return nil
+			},
+		},
 	},
 }
