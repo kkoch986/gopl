@@ -1,13 +1,67 @@
 package resolver
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/kkoch986/gopl/ast"
+	"github.com/kkoch986/gopl/indexer"
 )
 
+// TODO: stop using interface{} in bindings
 type Bindings struct {
-	B map[string]interface{}
+	B map[string]ast.Term
+}
+
+func (b *Bindings) Empty() bool {
+    return len(b.B) == 0
+}
+
+func (b *Bindings) Clone() *Bindings {
+	newMap := make(map[string]ast.Term)
+	for i, v := range b.B {
+		newMap[i] = v
+	}
+	return &Bindings{newMap}
+}
+
+func (b *Bindings) Bind(k string, v ast.Term) bool {
+    if b.B[k] != nil {
+        return false
+    }
+    b.B[k] = v
+    return true
+}
+
+func (b *Bindings) String() string {
+    ret := "Bindings: \n"
+    for k, v := range(b.B) {
+        ret = ret + fmt.Sprintf("\t%s: %s\n", k, v)
+    }
+    return ret
+}
+
+/**
+ * Derefernce takes a term and returns a term.
+ * If the term is a variable, and there is a binding present, it will return that term
+ */
+func (b *Bindings) Dereference(t ast.Term) ast.Term {
+    termType := t.GetType()
+    if termType == ast.T_Variable {
+        d := b.B[t.(*ast.Variable).String()]
+        // if there is no binding for this term, just return it as is
+        if d == nil {
+            return t
+        }
+        // if what was returned is a variable, dereference that again
+        if d.GetType() == ast.T_Variable {
+            return b.Dereference(d)
+        }
+
+        // otherwise, return whatever we got
+        return d
+    }
+    return t
 }
 
 type FactResolver interface {
@@ -16,18 +70,30 @@ type FactResolver interface {
 
 type R struct {
 	fr []FactResolver
+	i  indexer.Indexer
 }
 
 func (r *R) AddFactResolver(nr FactResolver) {
 	r.fr = append(r.fr, nr)
 }
 
-func New() *R {
-	r := &R{}
-	r.AddFactResolver(&Writeln{})
-	r.AddFactResolver(&True{})
-	r.AddFactResolver(&Fail{})
-    r.AddFactResolver(&Load{})
+func (r *R) AddFactResolvers(rs []FactResolver) {
+	for _, v := range rs {
+		r.AddFactResolver(v)
+	}
+}
+
+func New(i indexer.Indexer) *R {
+	r := &R{
+		i: i,
+	}
+	r.AddFactResolvers([]FactResolver{
+		&Writeln{r},
+		&True{},
+		&Fail{},
+		&Load{},
+		&Assert{i},
+	})
 	return r
 }
 
@@ -40,16 +106,16 @@ func (r *R) ResolveStatementList(sl []ast.Statement, c *Bindings, out chan<- *Bi
 
 	// find all the bindings for the first statement
 	headBindings := make(chan *Bindings, 2)
-    tail := sl[1:]
+	tail := sl[1:]
 
 	go r.ResolveStatement(sl[0], c, headBindings)
 	for hb := range headBindings {
 		// for each binding of the first element of the list, try to resolve the next
-        tailBindings := make(chan *Bindings, 2)
-        go r.ResolveStatementList(tail, hb, tailBindings)
-        for ob := range tailBindings {
-            out <- ob
-        }
+		tailBindings := make(chan *Bindings, 2)
+		go r.ResolveStatementList(tail, hb, tailBindings)
+		for ob := range tailBindings {
+			out <- ob
+		}
 	}
 	return nil
 }
@@ -119,4 +185,21 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 	}
 
 	// TODO: if nothing matched, invoke the default behavior
+	// Find all of the statements that match the signature
+	matching := r.i.StatementsForSignature(f.Signature())
+
+    // attempt to unify the input fact with each of the matching statements
+	// return each one that does unify as a result binding
+	for _, s := range matching {
+		t := s.GetType()
+		if t == ast.T_Fact {
+			fmt.Printf("unify 2 facts %s and %s", f, s)
+			newBinding := unifyFacts(s.(*ast.Fact), f, c)
+			if newBinding != nil {
+				out <- newBinding
+			}
+		} else {
+			fmt.Println("TODO: other types of fact unification")
+		}
+	}
 }

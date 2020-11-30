@@ -17,7 +17,5 @@ func (w *True) Resolve(fact *ast.Fact, c *Bindings, out chan<- *Bindings, m chan
 	defer close(out)
 	defer close(m)
 	out <- c
-    out <- c
-    out <- c
 	m <- true
 }

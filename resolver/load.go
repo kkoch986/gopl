@@ -17,10 +17,8 @@ func (w *Load) Resolve(fact *ast.Fact, c *Bindings, out chan<- *Bindings, m chan
 	defer close(out)
 	defer close(m)
 
-    // TODO: load the given file and index it
-    
+	// TODO: load the given file and index it
 
-
-    m <- true
-    out <- c
+	m <- true
+	out <- c
 }

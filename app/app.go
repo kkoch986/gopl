@@ -10,9 +10,11 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/kkoch986/gopl/ast"
+	"github.com/kkoch986/gopl/indexer"
 	"github.com/kkoch986/gopl/lexer"
 	"github.com/kkoch986/gopl/parser"
 	"github.com/kkoch986/gopl/raw"
+	"github.com/kkoch986/gopl/resolver"
 )
 
 var App = &cli.App{
@@ -70,7 +72,11 @@ var App = &cli.App{
 			Usage:   "Enter the interactive query shell",
 			Flags:   []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				shell := &QueryCLI{}
+				i := indexer.NewDefault()
+				shell := &QueryCLI{
+					I: i,
+					R: resolver.New(i),
+				}
 				err := shell.Run()
 				if err != nil {
 					log.Fatal(err)
