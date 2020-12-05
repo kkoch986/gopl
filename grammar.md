@@ -53,11 +53,14 @@ for example
 
 ```
 Fact 
-  : atom"()"
+  : Infix 
+  | atom"()"
   | string_lit"()"
   | atom"(" ArgList ")"
   | string_lit"(" ArgList ")"
   ;
+
+Infix : Arg infix_operator Arg ;
 
 FactList
   : FactList "," Fact
@@ -79,7 +82,6 @@ Arg
   ;
 ```
 # TODO: add support for `is <math expr>`
-# TODO: add support for infix operations (just equals for now)
 
 ## Lists
 
@@ -100,11 +102,18 @@ Cons : ArgList "|" ArgList ;
 
 These are the most basic primitive types. TODO: more details here
 
-# TODO: list/cons support `[]`
-
 ```
 atom : lowcase {letter|number|'_'} ;
 var : (upcase|'_') {letter|number|'_'} ;
 string_lit : '"' {not "\\\"" | '\\' any "\\\"nrt"} '"' ;
 num_lit : ['-'] number {number} ['.' {number}] ;
 ```
+
+## Operators
+
+```
+infix_operator : '=';
+```
+
+
+

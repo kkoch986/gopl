@@ -42,26 +42,32 @@ const(
 	Cons0R3
 	Fact0R0
 	Fact0R1
-	Fact0R2
 	Fact1R0
 	Fact1R1
 	Fact1R2
 	Fact2R0
 	Fact2R1
 	Fact2R2
-	Fact2R3
-	Fact2R4
 	Fact3R0
 	Fact3R1
 	Fact3R2
 	Fact3R3
 	Fact3R4
+	Fact4R0
+	Fact4R1
+	Fact4R2
+	Fact4R3
+	Fact4R4
 	FactList0R0
 	FactList0R1
 	FactList0R2
 	FactList0R3
 	FactList1R0
 	FactList1R1
+	Infix0R0
+	Infix0R1
+	Infix0R2
+	Infix0R3
 	List0R0
 	List0R1
 	List1R0
@@ -185,28 +191,28 @@ var slots = map[Label]*Slot{
 	Arg0R0: {
 		symbols.NT_Arg, 0, 0, 
 		symbols.Symbols{  
-			symbols.T_12,
+			symbols.T_13,
 		}, 
 		Arg0R0, 
 	},
 	Arg0R1: {
 		symbols.NT_Arg, 0, 1, 
 		symbols.Symbols{  
-			symbols.T_12,
+			symbols.T_13,
 		}, 
 		Arg0R1, 
 	},
 	Arg1R0: {
 		symbols.NT_Arg, 1, 0, 
 		symbols.Symbols{  
-			symbols.T_11,
+			symbols.T_12,
 		}, 
 		Arg1R0, 
 	},
 	Arg1R1: {
 		symbols.NT_Arg, 1, 1, 
 		symbols.Symbols{  
-			symbols.T_11,
+			symbols.T_12,
 		}, 
 		Arg1R1, 
 	},
@@ -227,14 +233,14 @@ var slots = map[Label]*Slot{
 	Arg3R0: {
 		symbols.NT_Arg, 3, 0, 
 		symbols.Symbols{  
-			symbols.T_13,
+			symbols.T_14,
 		}, 
 		Arg3R0, 
 	},
 	Arg3R1: {
 		symbols.NT_Arg, 3, 1, 
 		symbols.Symbols{  
-			symbols.T_13,
+			symbols.T_14,
 		}, 
 		Arg3R1, 
 	},
@@ -370,7 +376,7 @@ var slots = map[Label]*Slot{
 		symbols.NT_Cons, 0, 0, 
 		symbols.Symbols{  
 			symbols.NT_ArgList, 
-			symbols.T_14, 
+			symbols.T_15, 
 			symbols.NT_ArgList,
 		}, 
 		Cons0R0, 
@@ -379,7 +385,7 @@ var slots = map[Label]*Slot{
 		symbols.NT_Cons, 0, 1, 
 		symbols.Symbols{  
 			symbols.NT_ArgList, 
-			symbols.T_14, 
+			symbols.T_15, 
 			symbols.NT_ArgList,
 		}, 
 		Cons0R1, 
@@ -388,7 +394,7 @@ var slots = map[Label]*Slot{
 		symbols.NT_Cons, 0, 2, 
 		symbols.Symbols{  
 			symbols.NT_ArgList, 
-			symbols.T_14, 
+			symbols.T_15, 
 			symbols.NT_ArgList,
 		}, 
 		Cons0R2, 
@@ -397,7 +403,7 @@ var slots = map[Label]*Slot{
 		symbols.NT_Cons, 0, 3, 
 		symbols.Symbols{  
 			symbols.NT_ArgList, 
-			symbols.T_14, 
+			symbols.T_15, 
 			symbols.NT_ArgList,
 		}, 
 		Cons0R3, 
@@ -405,31 +411,21 @@ var slots = map[Label]*Slot{
 	Fact0R0: {
 		symbols.NT_Fact, 0, 0, 
 		symbols.Symbols{  
-			symbols.T_10, 
-			symbols.T_1,
+			symbols.NT_Infix,
 		}, 
 		Fact0R0, 
 	},
 	Fact0R1: {
 		symbols.NT_Fact, 0, 1, 
 		symbols.Symbols{  
-			symbols.T_10, 
-			symbols.T_1,
+			symbols.NT_Infix,
 		}, 
 		Fact0R1, 
-	},
-	Fact0R2: {
-		symbols.NT_Fact, 0, 2, 
-		symbols.Symbols{  
-			symbols.T_10, 
-			symbols.T_1,
-		}, 
-		Fact0R2, 
 	},
 	Fact1R0: {
 		symbols.NT_Fact, 1, 0, 
 		symbols.Symbols{  
-			symbols.T_12, 
+			symbols.T_10, 
 			symbols.T_1,
 		}, 
 		Fact1R0, 
@@ -437,7 +433,7 @@ var slots = map[Label]*Slot{
 	Fact1R1: {
 		symbols.NT_Fact, 1, 1, 
 		symbols.Symbols{  
-			symbols.T_12, 
+			symbols.T_10, 
 			symbols.T_1,
 		}, 
 		Fact1R1, 
@@ -445,7 +441,7 @@ var slots = map[Label]*Slot{
 	Fact1R2: {
 		symbols.NT_Fact, 1, 2, 
 		symbols.Symbols{  
-			symbols.T_12, 
+			symbols.T_10, 
 			symbols.T_1,
 		}, 
 		Fact1R2, 
@@ -453,57 +449,31 @@ var slots = map[Label]*Slot{
 	Fact2R0: {
 		symbols.NT_Fact, 2, 0, 
 		symbols.Symbols{  
-			symbols.T_10, 
-			symbols.T_0, 
-			symbols.NT_ArgList, 
-			symbols.T_2,
+			symbols.T_13, 
+			symbols.T_1,
 		}, 
 		Fact2R0, 
 	},
 	Fact2R1: {
 		symbols.NT_Fact, 2, 1, 
 		symbols.Symbols{  
-			symbols.T_10, 
-			symbols.T_0, 
-			symbols.NT_ArgList, 
-			symbols.T_2,
+			symbols.T_13, 
+			symbols.T_1,
 		}, 
 		Fact2R1, 
 	},
 	Fact2R2: {
 		symbols.NT_Fact, 2, 2, 
 		symbols.Symbols{  
-			symbols.T_10, 
-			symbols.T_0, 
-			symbols.NT_ArgList, 
-			symbols.T_2,
+			symbols.T_13, 
+			symbols.T_1,
 		}, 
 		Fact2R2, 
-	},
-	Fact2R3: {
-		symbols.NT_Fact, 2, 3, 
-		symbols.Symbols{  
-			symbols.T_10, 
-			symbols.T_0, 
-			symbols.NT_ArgList, 
-			symbols.T_2,
-		}, 
-		Fact2R3, 
-	},
-	Fact2R4: {
-		symbols.NT_Fact, 2, 4, 
-		symbols.Symbols{  
-			symbols.T_10, 
-			symbols.T_0, 
-			symbols.NT_ArgList, 
-			symbols.T_2,
-		}, 
-		Fact2R4, 
 	},
 	Fact3R0: {
 		symbols.NT_Fact, 3, 0, 
 		symbols.Symbols{  
-			symbols.T_12, 
+			symbols.T_10, 
 			symbols.T_0, 
 			symbols.NT_ArgList, 
 			symbols.T_2,
@@ -513,7 +483,7 @@ var slots = map[Label]*Slot{
 	Fact3R1: {
 		symbols.NT_Fact, 3, 1, 
 		symbols.Symbols{  
-			symbols.T_12, 
+			symbols.T_10, 
 			symbols.T_0, 
 			symbols.NT_ArgList, 
 			symbols.T_2,
@@ -523,7 +493,7 @@ var slots = map[Label]*Slot{
 	Fact3R2: {
 		symbols.NT_Fact, 3, 2, 
 		symbols.Symbols{  
-			symbols.T_12, 
+			symbols.T_10, 
 			symbols.T_0, 
 			symbols.NT_ArgList, 
 			symbols.T_2,
@@ -533,7 +503,7 @@ var slots = map[Label]*Slot{
 	Fact3R3: {
 		symbols.NT_Fact, 3, 3, 
 		symbols.Symbols{  
-			symbols.T_12, 
+			symbols.T_10, 
 			symbols.T_0, 
 			symbols.NT_ArgList, 
 			symbols.T_2,
@@ -543,12 +513,62 @@ var slots = map[Label]*Slot{
 	Fact3R4: {
 		symbols.NT_Fact, 3, 4, 
 		symbols.Symbols{  
-			symbols.T_12, 
+			symbols.T_10, 
 			symbols.T_0, 
 			symbols.NT_ArgList, 
 			symbols.T_2,
 		}, 
 		Fact3R4, 
+	},
+	Fact4R0: {
+		symbols.NT_Fact, 4, 0, 
+		symbols.Symbols{  
+			symbols.T_13, 
+			symbols.T_0, 
+			symbols.NT_ArgList, 
+			symbols.T_2,
+		}, 
+		Fact4R0, 
+	},
+	Fact4R1: {
+		symbols.NT_Fact, 4, 1, 
+		symbols.Symbols{  
+			symbols.T_13, 
+			symbols.T_0, 
+			symbols.NT_ArgList, 
+			symbols.T_2,
+		}, 
+		Fact4R1, 
+	},
+	Fact4R2: {
+		symbols.NT_Fact, 4, 2, 
+		symbols.Symbols{  
+			symbols.T_13, 
+			symbols.T_0, 
+			symbols.NT_ArgList, 
+			symbols.T_2,
+		}, 
+		Fact4R2, 
+	},
+	Fact4R3: {
+		symbols.NT_Fact, 4, 3, 
+		symbols.Symbols{  
+			symbols.T_13, 
+			symbols.T_0, 
+			symbols.NT_ArgList, 
+			symbols.T_2,
+		}, 
+		Fact4R3, 
+	},
+	Fact4R4: {
+		symbols.NT_Fact, 4, 4, 
+		symbols.Symbols{  
+			symbols.T_13, 
+			symbols.T_0, 
+			symbols.NT_ArgList, 
+			symbols.T_2,
+		}, 
+		Fact4R4, 
 	},
 	FactList0R0: {
 		symbols.NT_FactList, 0, 0, 
@@ -599,6 +619,42 @@ var slots = map[Label]*Slot{
 			symbols.NT_Fact,
 		}, 
 		FactList1R1, 
+	},
+	Infix0R0: {
+		symbols.NT_Infix, 0, 0, 
+		symbols.Symbols{  
+			symbols.NT_Arg, 
+			symbols.T_11, 
+			symbols.NT_Arg,
+		}, 
+		Infix0R0, 
+	},
+	Infix0R1: {
+		symbols.NT_Infix, 0, 1, 
+		symbols.Symbols{  
+			symbols.NT_Arg, 
+			symbols.T_11, 
+			symbols.NT_Arg,
+		}, 
+		Infix0R1, 
+	},
+	Infix0R2: {
+		symbols.NT_Infix, 0, 2, 
+		symbols.Symbols{  
+			symbols.NT_Arg, 
+			symbols.T_11, 
+			symbols.NT_Arg,
+		}, 
+		Infix0R2, 
+	},
+	Infix0R3: {
+		symbols.NT_Infix, 0, 3, 
+		symbols.Symbols{  
+			symbols.NT_Arg, 
+			symbols.T_11, 
+			symbols.NT_Arg,
+		}, 
+		Infix0R3, 
 	},
 	List0R0: {
 		symbols.NT_List, 0, 0, 
@@ -889,26 +945,32 @@ var slotIndex = map[Index]Label {
 	Index{ symbols.NT_Cons,0,3 }: Cons0R3,
 	Index{ symbols.NT_Fact,0,0 }: Fact0R0,
 	Index{ symbols.NT_Fact,0,1 }: Fact0R1,
-	Index{ symbols.NT_Fact,0,2 }: Fact0R2,
 	Index{ symbols.NT_Fact,1,0 }: Fact1R0,
 	Index{ symbols.NT_Fact,1,1 }: Fact1R1,
 	Index{ symbols.NT_Fact,1,2 }: Fact1R2,
 	Index{ symbols.NT_Fact,2,0 }: Fact2R0,
 	Index{ symbols.NT_Fact,2,1 }: Fact2R1,
 	Index{ symbols.NT_Fact,2,2 }: Fact2R2,
-	Index{ symbols.NT_Fact,2,3 }: Fact2R3,
-	Index{ symbols.NT_Fact,2,4 }: Fact2R4,
 	Index{ symbols.NT_Fact,3,0 }: Fact3R0,
 	Index{ symbols.NT_Fact,3,1 }: Fact3R1,
 	Index{ symbols.NT_Fact,3,2 }: Fact3R2,
 	Index{ symbols.NT_Fact,3,3 }: Fact3R3,
 	Index{ symbols.NT_Fact,3,4 }: Fact3R4,
+	Index{ symbols.NT_Fact,4,0 }: Fact4R0,
+	Index{ symbols.NT_Fact,4,1 }: Fact4R1,
+	Index{ symbols.NT_Fact,4,2 }: Fact4R2,
+	Index{ symbols.NT_Fact,4,3 }: Fact4R3,
+	Index{ symbols.NT_Fact,4,4 }: Fact4R4,
 	Index{ symbols.NT_FactList,0,0 }: FactList0R0,
 	Index{ symbols.NT_FactList,0,1 }: FactList0R1,
 	Index{ symbols.NT_FactList,0,2 }: FactList0R2,
 	Index{ symbols.NT_FactList,0,3 }: FactList0R3,
 	Index{ symbols.NT_FactList,1,0 }: FactList1R0,
 	Index{ symbols.NT_FactList,1,1 }: FactList1R1,
+	Index{ symbols.NT_Infix,0,0 }: Infix0R0,
+	Index{ symbols.NT_Infix,0,1 }: Infix0R1,
+	Index{ symbols.NT_Infix,0,2 }: Infix0R2,
+	Index{ symbols.NT_Infix,0,3 }: Infix0R3,
 	Index{ symbols.NT_List,0,0 }: List0R0,
 	Index{ symbols.NT_List,0,1 }: List0R1,
 	Index{ symbols.NT_List,1,0 }: List1R0,
@@ -948,7 +1010,8 @@ var alternates = map[symbols.NT][]Label{
 	symbols.NT_Query:[]Label{ Query0R0 },
 	symbols.NT_Rule:[]Label{ Rule0R0 },
 	symbols.NT_Concatenation:[]Label{ Concatenation0R0,Concatenation1R0 },
-	symbols.NT_Fact:[]Label{ Fact0R0,Fact1R0,Fact2R0,Fact3R0 },
+	symbols.NT_Fact:[]Label{ Fact0R0,Fact1R0,Fact2R0,Fact3R0,Fact4R0 },
+	symbols.NT_Infix:[]Label{ Infix0R0 },
 	symbols.NT_FactList:[]Label{ FactList0R0,FactList1R0 },
 	symbols.NT_ArgList:[]Label{ ArgList0R0,ArgList1R0 },
 	symbols.NT_Arg:[]Label{ Arg0R0,Arg1R0,Arg2R0,Arg3R0,Arg4R0,Arg5R0 },

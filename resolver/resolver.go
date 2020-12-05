@@ -88,6 +88,7 @@ func New(i indexer.Indexer) *R {
 		i: i,
 	}
 	r.AddFactResolvers([]FactResolver{
+        &Equals{},
 		&Writeln{r},
 		&True{},
 		&Fail{},
@@ -148,10 +149,10 @@ func (r *R) ResolveQuery(q *ast.Query, c *Bindings, out chan<- *Bindings) {
 	tail := q.Tail()
 	go r.ResolveFact(q.Head(), c, headBindings)
 
-	for b := range headBindings {
+	for hb := range headBindings {
 		// find all resolutions of the tail and run them back to out
 		tailBindings := make(chan *Bindings, 2)
-		go r.ResolveQuery(tail, b, tailBindings)
+		go r.ResolveQuery(tail, hb, tailBindings)
 		for ob := range tailBindings {
 			out <- ob
 		}
@@ -193,7 +194,6 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 	for _, s := range matching {
 		t := s.GetType()
 		if t == ast.T_Fact {
-			fmt.Printf("unify 2 facts %s and %s", f, s)
 			newBinding := unifyFacts(s.(*ast.Fact), f, c)
 			if newBinding != nil {
 				out <- newBinding

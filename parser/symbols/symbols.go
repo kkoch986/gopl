@@ -20,6 +20,7 @@ const(
 	NT_Cons 
 	NT_Fact 
 	NT_FactList 
+	NT_Infix 
 	NT_List 
 	NT_Query 
 	NT_Rule 
@@ -41,10 +42,11 @@ const(
 	T_8  // [] 
 	T_9  // ] 
 	T_10  // atom 
-	T_11  // num_lit 
-	T_12  // string_lit 
-	T_13  // var 
-	T_14  // | 
+	T_11  // infix_operator 
+	T_12  // num_lit 
+	T_13  // string_lit 
+	T_14  // var 
+	T_15  // | 
 )
 
 type Symbols []Symbol
@@ -80,6 +82,7 @@ var ntToString = []string {
 	"Cons", /* NT_Cons */
 	"Fact", /* NT_Fact */
 	"FactList", /* NT_FactList */
+	"Infix", /* NT_Infix */
 	"List", /* NT_List */
 	"Query", /* NT_Query */
 	"Rule", /* NT_Rule */
@@ -99,10 +102,11 @@ var tToString = []string {
 	"[]", /* T_8 */
 	"]", /* T_9 */
 	"atom", /* T_10 */
-	"num_lit", /* T_11 */
-	"string_lit", /* T_12 */
-	"var", /* T_13 */
-	"|", /* T_14 */ 
+	"infix_operator", /* T_11 */
+	"num_lit", /* T_12 */
+	"string_lit", /* T_13 */
+	"var", /* T_14 */
+	"|", /* T_15 */ 
 }
 
 var stringNT = map[string]NT{ 
@@ -112,6 +116,7 @@ var stringNT = map[string]NT{
 	"Cons":NT_Cons,
 	"Fact":NT_Fact,
 	"FactList":NT_FactList,
+	"Infix":NT_Infix,
 	"List":NT_List,
 	"Query":NT_Query,
 	"Rule":NT_Rule,

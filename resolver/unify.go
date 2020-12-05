@@ -5,6 +5,26 @@ import (
 )
 
 /**
+ * Equals (=/2) will simly try to unify the two given args
+ */
+type Equals struct{}
+
+func (w *Equals) Resolve(fact *ast.Fact, c *Bindings, out chan<- *Bindings, m chan<- bool) {
+	if fact.Signature().String() != "=/2" {
+		m <- false
+		return
+	}
+	defer close(out)
+	defer close(m)
+
+    b := unifyTerms(fact.Args[0], fact.Args[1], c)
+    if b != nil {
+	    out <- b
+    }
+	m <- true
+}
+
+/**
  * attempt to unify the 2 given facts
  * 2 facts unify iff:
  *   1. their Head and arity are the same
@@ -37,14 +57,12 @@ func unifyFacts(base *ast.Fact, query *ast.Fact, b *Bindings) *Bindings {
  * TODO: flesh out this comment some more
  */
 func unifyTerms(base ast.Term, query ast.Term, b *Bindings) *Bindings {
-	baseType := base.GetType()
-	queryType := query.GetType()
-    
-    
-
 	// if either is a variable, derefence it first
     base = b.Dereference(base)
     query = b.Dereference(query)
+
+    baseType := base.GetType()
+	queryType := query.GetType()
 
     // UNIFY TERMINALS
 	// The most basic case is if both are primitive terms (string, atom, number)

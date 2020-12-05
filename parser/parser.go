@@ -216,23 +216,17 @@ func (p *parser) parse() (*bsr.Set, []*Error) {
 			} else {
 				p.parseError(slot.Cons0R0, p.cI, followSets[symbols.NT_Cons])
 			}
-		case slot.Fact0R0: // Fact : ∙atom ()
+		case slot.Fact0R0: // Fact : ∙Infix
 
-			p.bsrSet.Add(slot.Fact0R1, cU, p.cI, p.cI+1)
-			p.cI++
-			if !p.testSelect(slot.Fact0R1) {
-				p.parseError(slot.Fact0R1, p.cI, first[slot.Fact0R1])
-				break
-			}
+			p.call(slot.Fact0R1, cU, p.cI)
+		case slot.Fact0R1: // Fact : Infix ∙
 
-			p.bsrSet.Add(slot.Fact0R2, cU, p.cI, p.cI+1)
-			p.cI++
 			if p.follow(symbols.NT_Fact) {
 				p.rtn(symbols.NT_Fact, cU, p.cI)
 			} else {
 				p.parseError(slot.Fact0R0, p.cI, followSets[symbols.NT_Fact])
 			}
-		case slot.Fact1R0: // Fact : ∙string_lit ()
+		case slot.Fact1R0: // Fact : ∙atom ()
 
 			p.bsrSet.Add(slot.Fact1R1, cU, p.cI, p.cI+1)
 			p.cI++
@@ -248,7 +242,7 @@ func (p *parser) parse() (*bsr.Set, []*Error) {
 			} else {
 				p.parseError(slot.Fact1R0, p.cI, followSets[symbols.NT_Fact])
 			}
-		case slot.Fact2R0: // Fact : ∙atom ( ArgList )
+		case slot.Fact2R0: // Fact : ∙string_lit ()
 
 			p.bsrSet.Add(slot.Fact2R1, cU, p.cI, p.cI+1)
 			p.cI++
@@ -259,27 +253,12 @@ func (p *parser) parse() (*bsr.Set, []*Error) {
 
 			p.bsrSet.Add(slot.Fact2R2, cU, p.cI, p.cI+1)
 			p.cI++
-			if !p.testSelect(slot.Fact2R2) {
-				p.parseError(slot.Fact2R2, p.cI, first[slot.Fact2R2])
-				break
-			}
-
-			p.call(slot.Fact2R3, cU, p.cI)
-		case slot.Fact2R3: // Fact : atom ( ArgList ∙)
-
-			if !p.testSelect(slot.Fact2R3) {
-				p.parseError(slot.Fact2R3, p.cI, first[slot.Fact2R3])
-				break
-			}
-
-			p.bsrSet.Add(slot.Fact2R4, cU, p.cI, p.cI+1)
-			p.cI++
 			if p.follow(symbols.NT_Fact) {
 				p.rtn(symbols.NT_Fact, cU, p.cI)
 			} else {
 				p.parseError(slot.Fact2R0, p.cI, followSets[symbols.NT_Fact])
 			}
-		case slot.Fact3R0: // Fact : ∙string_lit ( ArgList )
+		case slot.Fact3R0: // Fact : ∙atom ( ArgList )
 
 			p.bsrSet.Add(slot.Fact3R1, cU, p.cI, p.cI+1)
 			p.cI++
@@ -296,7 +275,7 @@ func (p *parser) parse() (*bsr.Set, []*Error) {
 			}
 
 			p.call(slot.Fact3R3, cU, p.cI)
-		case slot.Fact3R3: // Fact : string_lit ( ArgList ∙)
+		case slot.Fact3R3: // Fact : atom ( ArgList ∙)
 
 			if !p.testSelect(slot.Fact3R3) {
 				p.parseError(slot.Fact3R3, p.cI, first[slot.Fact3R3])
@@ -309,6 +288,37 @@ func (p *parser) parse() (*bsr.Set, []*Error) {
 				p.rtn(symbols.NT_Fact, cU, p.cI)
 			} else {
 				p.parseError(slot.Fact3R0, p.cI, followSets[symbols.NT_Fact])
+			}
+		case slot.Fact4R0: // Fact : ∙string_lit ( ArgList )
+
+			p.bsrSet.Add(slot.Fact4R1, cU, p.cI, p.cI+1)
+			p.cI++
+			if !p.testSelect(slot.Fact4R1) {
+				p.parseError(slot.Fact4R1, p.cI, first[slot.Fact4R1])
+				break
+			}
+
+			p.bsrSet.Add(slot.Fact4R2, cU, p.cI, p.cI+1)
+			p.cI++
+			if !p.testSelect(slot.Fact4R2) {
+				p.parseError(slot.Fact4R2, p.cI, first[slot.Fact4R2])
+				break
+			}
+
+			p.call(slot.Fact4R3, cU, p.cI)
+		case slot.Fact4R3: // Fact : string_lit ( ArgList ∙)
+
+			if !p.testSelect(slot.Fact4R3) {
+				p.parseError(slot.Fact4R3, p.cI, first[slot.Fact4R3])
+				break
+			}
+
+			p.bsrSet.Add(slot.Fact4R4, cU, p.cI, p.cI+1)
+			p.cI++
+			if p.follow(symbols.NT_Fact) {
+				p.rtn(symbols.NT_Fact, cU, p.cI)
+			} else {
+				p.parseError(slot.Fact4R0, p.cI, followSets[symbols.NT_Fact])
 			}
 		case slot.FactList0R0: // FactList : ∙FactList , Fact
 
@@ -344,6 +354,31 @@ func (p *parser) parse() (*bsr.Set, []*Error) {
 				p.rtn(symbols.NT_FactList, cU, p.cI)
 			} else {
 				p.parseError(slot.FactList1R0, p.cI, followSets[symbols.NT_FactList])
+			}
+		case slot.Infix0R0: // Infix : ∙Arg infix_operator Arg
+
+			p.call(slot.Infix0R1, cU, p.cI)
+		case slot.Infix0R1: // Infix : Arg ∙infix_operator Arg
+
+			if !p.testSelect(slot.Infix0R1) {
+				p.parseError(slot.Infix0R1, p.cI, first[slot.Infix0R1])
+				break
+			}
+
+			p.bsrSet.Add(slot.Infix0R2, cU, p.cI, p.cI+1)
+			p.cI++
+			if !p.testSelect(slot.Infix0R2) {
+				p.parseError(slot.Infix0R2, p.cI, first[slot.Infix0R2])
+				break
+			}
+
+			p.call(slot.Infix0R3, cU, p.cI)
+		case slot.Infix0R3: // Infix : Arg infix_operator Arg ∙
+
+			if p.follow(symbols.NT_Infix) {
+				p.rtn(symbols.NT_Infix, cU, p.cI)
+			} else {
+				p.parseError(slot.Infix0R0, p.cI, followSets[symbols.NT_Infix])
 			}
 		case slot.List0R0: // List : ∙[]
 
@@ -767,25 +802,31 @@ func (p *parser) testSelect(l slot.Label) bool {
 var first = []map[token.Type]string{
 	// Arg : ∙string_lit
 	{
-		token.T_12: "string_lit",
+		token.T_13: "string_lit",
 	},
 	// Arg : string_lit ∙
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// Arg : ∙num_lit
 	{
-		token.T_11: "num_lit",
+		token.T_12: "num_lit",
 	},
 	// Arg : num_lit ∙
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// Arg : ∙atom
 	{
@@ -795,31 +836,44 @@ var first = []map[token.Type]string{
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// Arg : ∙var
 	{
-		token.T_13: "var",
+		token.T_14: "var",
 	},
 	// Arg : var ∙
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// Arg : ∙Fact
 	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Arg : Fact ∙
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// Arg : ∙List
 	{
@@ -830,17 +884,20 @@ var first = []map[token.Type]string{
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// ArgList : ∙ArgList , Arg
 	{
 		token.T_7:  "[",
 		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_11: "num_lit",
-		token.T_12: "string_lit",
-		token.T_13: "var",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// ArgList : ArgList ∙, Arg
 	{
@@ -851,37 +908,41 @@ var first = []map[token.Type]string{
 		token.T_7:  "[",
 		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_11: "num_lit",
-		token.T_12: "string_lit",
-		token.T_13: "var",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// ArgList : ArgList , Arg ∙
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_15: "|",
 	},
 	// ArgList : ∙Arg
 	{
 		token.T_7:  "[",
 		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_11: "num_lit",
-		token.T_12: "string_lit",
-		token.T_13: "var",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// ArgList : Arg ∙
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_15: "|",
 	},
 	// Concatenation : ∙Concatenation , Fact
 	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Concatenation : Concatenation ∙, Fact
 	{
@@ -889,8 +950,12 @@ var first = []map[token.Type]string{
 	},
 	// Concatenation : Concatenation , ∙Fact
 	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Concatenation : Concatenation , Fact ∙
 	{
@@ -899,8 +964,12 @@ var first = []map[token.Type]string{
 	},
 	// Concatenation : ∙Fact
 	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Concatenation : Fact ∙
 	{
@@ -912,26 +981,45 @@ var first = []map[token.Type]string{
 		token.T_7:  "[",
 		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_11: "num_lit",
-		token.T_12: "string_lit",
-		token.T_13: "var",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Cons : ArgList ∙| ArgList
 	{
-		token.T_14: "|",
+		token.T_15: "|",
 	},
 	// Cons : ArgList | ∙ArgList
 	{
 		token.T_7:  "[",
 		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_11: "num_lit",
-		token.T_12: "string_lit",
-		token.T_13: "var",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Cons : ArgList | ArgList ∙
 	{
 		token.T_9: "]",
+	},
+	// Fact : ∙Infix
+	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
+		token.T_10: "atom",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
+	},
+	// Fact : Infix ∙
+	{
+		token.T_2:  ")",
+		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
+		token.T_9:  "]",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// Fact : ∙atom ()
 	{
@@ -948,11 +1036,12 @@ var first = []map[token.Type]string{
 		token.T_4:  ".",
 		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// Fact : ∙string_lit ()
 	{
-		token.T_12: "string_lit",
+		token.T_13: "string_lit",
 	},
 	// Fact : string_lit ∙()
 	{
@@ -965,7 +1054,8 @@ var first = []map[token.Type]string{
 		token.T_4:  ".",
 		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// Fact : ∙atom ( ArgList )
 	{
@@ -980,9 +1070,9 @@ var first = []map[token.Type]string{
 		token.T_7:  "[",
 		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_11: "num_lit",
-		token.T_12: "string_lit",
-		token.T_13: "var",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Fact : atom ( ArgList ∙)
 	{
@@ -995,11 +1085,12 @@ var first = []map[token.Type]string{
 		token.T_4:  ".",
 		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// Fact : ∙string_lit ( ArgList )
 	{
-		token.T_12: "string_lit",
+		token.T_13: "string_lit",
 	},
 	// Fact : string_lit ∙( ArgList )
 	{
@@ -1010,9 +1101,9 @@ var first = []map[token.Type]string{
 		token.T_7:  "[",
 		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_11: "num_lit",
-		token.T_12: "string_lit",
-		token.T_13: "var",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Fact : string_lit ( ArgList ∙)
 	{
@@ -1025,12 +1116,17 @@ var first = []map[token.Type]string{
 		token.T_4:  ".",
 		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// FactList : ∙FactList , Fact
 	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// FactList : FactList ∙, Fact
 	{
@@ -1038,8 +1134,12 @@ var first = []map[token.Type]string{
 	},
 	// FactList : FactList , ∙Fact
 	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// FactList : FactList , Fact ∙
 	{
@@ -1048,13 +1148,49 @@ var first = []map[token.Type]string{
 	},
 	// FactList : ∙Fact
 	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// FactList : Fact ∙
 	{
 		token.T_3: ",",
 		token.T_4: ".",
+	},
+	// Infix : ∙Arg infix_operator Arg
+	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
+		token.T_10: "atom",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
+	},
+	// Infix : Arg ∙infix_operator Arg
+	{
+		token.T_11: "infix_operator",
+	},
+	// Infix : Arg infix_operator ∙Arg
+	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
+		token.T_10: "atom",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
+	},
+	// Infix : Arg infix_operator Arg ∙
+	{
+		token.T_2:  ")",
+		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
+		token.T_9:  "]",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// List : ∙[]
 	{
@@ -1064,8 +1200,11 @@ var first = []map[token.Type]string{
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// List : ∙[ Cons ]
 	{
@@ -1076,9 +1215,9 @@ var first = []map[token.Type]string{
 		token.T_7:  "[",
 		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_11: "num_lit",
-		token.T_12: "string_lit",
-		token.T_13: "var",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// List : [ Cons ∙]
 	{
@@ -1088,8 +1227,11 @@ var first = []map[token.Type]string{
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// List : ∙[ ArgList ]
 	{
@@ -1100,9 +1242,9 @@ var first = []map[token.Type]string{
 		token.T_7:  "[",
 		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_11: "num_lit",
-		token.T_12: "string_lit",
-		token.T_13: "var",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// List : [ ArgList ∙]
 	{
@@ -1112,8 +1254,11 @@ var first = []map[token.Type]string{
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// Query : ∙?- Concatenation
 	{
@@ -1121,8 +1266,12 @@ var first = []map[token.Type]string{
 	},
 	// Query : ?- ∙Concatenation
 	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Query : ?- Concatenation ∙
 	{
@@ -1130,8 +1279,12 @@ var first = []map[token.Type]string{
 	},
 	// Rule : ∙Fact :- FactList
 	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Rule : Fact ∙:- FactList
 	{
@@ -1139,8 +1292,12 @@ var first = []map[token.Type]string{
 	},
 	// Rule : Fact :- ∙FactList
 	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Rule : Fact :- FactList ∙
 	{
@@ -1158,13 +1315,21 @@ var first = []map[token.Type]string{
 	{
 		token.EOF:  "$",
 		token.T_6:  "?-",
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Statement : ∙Fact .
 	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Statement : Fact ∙.
 	{
@@ -1174,13 +1339,21 @@ var first = []map[token.Type]string{
 	{
 		token.EOF:  "$",
 		token.T_6:  "?-",
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Statement : ∙Rule .
 	{
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// Statement : Rule ∙.
 	{
@@ -1190,40 +1363,64 @@ var first = []map[token.Type]string{
 	{
 		token.EOF:  "$",
 		token.T_6:  "?-",
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// StatementList : ∙StatementList Statement
 	{
 		token.T_6:  "?-",
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// StatementList : StatementList ∙Statement
 	{
 		token.T_6:  "?-",
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// StatementList : StatementList Statement ∙
 	{
 		token.EOF:  "$",
 		token.T_6:  "?-",
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// StatementList : ∙Statement
 	{
 		token.T_6:  "?-",
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// StatementList : Statement ∙
 	{
 		token.EOF:  "$",
 		token.T_6:  "?-",
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 }
 
@@ -1232,15 +1429,18 @@ var followSets = []map[token.Type]string{
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// ArgList
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_15: "|",
 	},
 	// Concatenation
 	{
@@ -1258,19 +1458,33 @@ var followSets = []map[token.Type]string{
 		token.T_4:  ".",
 		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// FactList
 	{
 		token.T_3: ",",
 		token.T_4: ".",
 	},
+	// Infix
+	{
+		token.T_2:  ")",
+		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
+		token.T_9:  "]",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
+	},
 	// List
 	{
 		token.T_2:  ")",
 		token.T_3:  ",",
+		token.T_4:  ".",
+		token.T_5:  ":-",
 		token.T_9:  "]",
-		token.T_14: "|",
+		token.T_11: "infix_operator",
+		token.T_15: "|",
 	},
 	// Query
 	{
@@ -1284,15 +1498,23 @@ var followSets = []map[token.Type]string{
 	{
 		token.EOF:  "$",
 		token.T_6:  "?-",
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 	// StatementList
 	{
 		token.EOF:  "$",
 		token.T_6:  "?-",
+		token.T_7:  "[",
+		token.T_8:  "[]",
 		token.T_10: "atom",
-		token.T_12: "string_lit",
+		token.T_12: "num_lit",
+		token.T_13: "string_lit",
+		token.T_14: "var",
 	},
 }
 

@@ -117,10 +117,11 @@ const(
     T_8  // [] 
     T_9  // ] 
     T_10  // atom 
-    T_11  // num_lit 
-    T_12  // string_lit 
-    T_13  // var 
-    T_14  // | 
+    T_11  // infix_operator 
+    T_12  // num_lit 
+    T_13  // string_lit 
+    T_14  // var 
+    T_15  // | 
 )
 
 var TypeToString = []string{ 
@@ -141,6 +142,7 @@ var TypeToString = []string{
     "T_12",
     "T_13",
     "T_14",
+    "T_15",
 }
 
 var StringToType = map[string] Type { 
@@ -161,6 +163,7 @@ var StringToType = map[string] Type {
     "T_12" : T_12, 
     "T_13" : T_13, 
     "T_14" : T_14, 
+    "T_15" : T_15, 
 }
 
 var TypeToID = []string { 
@@ -177,6 +180,7 @@ var TypeToID = []string {
     "[]", 
     "]", 
     "atom", 
+    "infix_operator", 
     "num_lit", 
     "string_lit", 
     "var", 
@@ -184,6 +188,7 @@ var TypeToID = []string {
 }
 
 var Suppress = []bool { 
+    false, 
     false, 
     false, 
     false, 
