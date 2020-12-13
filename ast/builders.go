@@ -147,14 +147,14 @@ func BuildFact(b bsr.BSR) *Fact {
 	// The first alternative is the infix
 	// TODO: maybe a better way to do this, i dont like using Alternate because its sensitive
 	//       to changes in the order things are written in the grammar
-    if b.Alternate() == 0 {
-        // construct a fact with the infix operator as the head and the 2 sides as 2 args in the body
-        infix := b.GetNTChild(symbols.NT_Infix, 0)
-        lhs := BuildArg(infix.GetNTChild(symbols.NT_Arg, 0))
-        rhs := BuildArg(infix.GetNTChild(symbols.NT_Arg, 1))
-        operator := string(infix.GetTChildI(1).Literal())
-        return &Fact{operator, []Term{lhs, rhs}}
-    }
+	if b.Alternate() == 0 {
+		// construct a fact with the infix operator as the head and the 2 sides as 2 args in the body
+		infix := b.GetNTChild(symbols.NT_Infix, 0)
+		lhs := BuildArg(infix.GetNTChild(symbols.NT_Arg, 0))
+		rhs := BuildArg(infix.GetNTChild(symbols.NT_Arg, 1))
+		operator := string(infix.GetTChildI(1).Literal())
+		return &Fact{operator, []Term{lhs, rhs}}
+	}
 
 	// TODO: Error handling?
 	// The first thing should be either an atom or string lit
@@ -318,7 +318,7 @@ func BuildAtom(t *token.Token) *Atom {
 
 func BuildStringLiteral(t *token.Token) *StringLiteral {
 	str := string(t.Literal())
-    return &StringLiteral{str[1:len(str)-1]}
+	return &StringLiteral{str[1 : len(str)-1]}
 }
 
 func BuildNumericLiteral(t *token.Token) *NumericLiteral {

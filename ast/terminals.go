@@ -2,6 +2,7 @@ package ast
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
@@ -13,6 +14,55 @@ import (
 type Term interface {
 	GetType() TermType
 	String() string
+}
+
+func UnmarshalJSONTerm(b []byte) (Term, error) {
+	rm := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &rm)
+	if err != nil {
+		return nil, err
+	}
+
+	// unmarshal the type to a string
+	var t string
+	err = json.Unmarshal(rm["t"], &t)
+	if err != nil {
+		return nil, err
+	}
+
+	// based on the type, populate S with the correct statement type
+	switch t {
+	case "var":
+		v := &Variable{}
+		err = json.Unmarshal(b, v)
+		return v, err
+    case "fact":
+		f := &Fact{}
+		err = json.Unmarshal(b, f)
+		return f, err
+	case "query":
+		q := &Query{}
+		err = json.Unmarshal(b, q)
+		return q, err
+	case "rule":
+		r := &Rule{}
+		err = json.Unmarshal(b, r)
+		return r, err
+	case "atom":
+		v := &Atom{}
+		err = json.Unmarshal(b, v)
+		return v, err
+	case "str":
+		v := &StringLiteral{}
+		err = json.Unmarshal(b, v)
+		return v, err
+	case "num":
+		v := &NumericLiteral{}
+		err = json.Unmarshal(b, v)
+		return v, err
+	default:
+		return nil, errors.New(fmt.Sprintf("Unknown raw statement type: %s", t))
+	}
 }
 
 /**
@@ -35,11 +85,27 @@ func (v *Variable) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
+func (v *Variable) UnmarshalJSON(b []byte) error {
+	rm := make(map[string]json.RawMessage)
+	var s string
+	err := json.Unmarshal(b, &rm)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(rm["v"], &s)
+	if err != nil {
+		return err
+	}
+	v.string = s
+	return nil
+}
+
+
 /**
  * Atom
  */
 type Atom struct {
-	string `json:"v"`
+	string
 }
 
 func (v *Atom) GetType() TermType {
@@ -53,6 +119,20 @@ func (v *Atom) MarshalJSON() ([]byte, error) {
 	m["t"] = "atom"
 	m["v"] = v.string
 	return json.Marshal(m)
+}
+func (v *Atom) UnmarshalJSON(b []byte) error {
+	rm := make(map[string]json.RawMessage)
+	var s string
+	err := json.Unmarshal(b, &rm)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(rm["v"], &s)
+	if err != nil {
+		return err
+	}
+	v.string = s
+	return nil
 }
 
 /**
@@ -74,6 +154,20 @@ func (v *StringLiteral) MarshalJSON() ([]byte, error) {
 	m["v"] = v.string
 	return json.Marshal(m)
 }
+func (v *StringLiteral) UnmarshalJSON(b []byte) error {
+	rm := make(map[string]json.RawMessage)
+	var s string
+	err := json.Unmarshal(b, &rm)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(rm["v"], &s)
+	if err != nil {
+		return err
+	}
+	v.string = s
+	return nil
+}
 
 /**
  * NumericLiteral
@@ -92,7 +186,21 @@ func (v *NumericLiteral) String() string {
 
 func (v *NumericLiteral) MarshalJSON() ([]byte, error) {
 	m := make(map[string]interface{})
-	m["type"] = "num"
+	m["t"] = "num"
 	m["v"] = v.float64
 	return json.Marshal(m)
+}
+func (v *NumericLiteral) UnmarshalJSON(b []byte) error {
+	rm := make(map[string]json.RawMessage)
+	var s float64
+	err := json.Unmarshal(b, &rm)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(rm["v"], &s)
+	if err != nil {
+		return err
+	}
+	v.float64 = s
+	return nil
 }

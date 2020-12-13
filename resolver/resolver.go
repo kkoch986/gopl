@@ -8,13 +8,12 @@ import (
 	"github.com/kkoch986/gopl/indexer"
 )
 
-// TODO: stop using interface{} in bindings
 type Bindings struct {
 	B map[string]ast.Term
 }
 
 func (b *Bindings) Empty() bool {
-    return len(b.B) == 0
+	return len(b.B) == 0
 }
 
 func (b *Bindings) Clone() *Bindings {
@@ -26,19 +25,19 @@ func (b *Bindings) Clone() *Bindings {
 }
 
 func (b *Bindings) Bind(k string, v ast.Term) bool {
-    if b.B[k] != nil {
-        return false
-    }
-    b.B[k] = v
-    return true
+	if b.B[k] != nil {
+		return false
+	}
+	b.B[k] = v
+	return true
 }
 
 func (b *Bindings) String() string {
-    ret := "Bindings: \n"
-    for k, v := range(b.B) {
-        ret = ret + fmt.Sprintf("\t%s: %s\n", k, v)
-    }
-    return ret
+	ret := "Bindings: \n"
+	for k, v := range b.B {
+		ret = ret + fmt.Sprintf("\t%s: %s\n", k, v)
+	}
+	return ret
 }
 
 /**
@@ -46,22 +45,22 @@ func (b *Bindings) String() string {
  * If the term is a variable, and there is a binding present, it will return that term
  */
 func (b *Bindings) Dereference(t ast.Term) ast.Term {
-    termType := t.GetType()
-    if termType == ast.T_Variable {
-        d := b.B[t.(*ast.Variable).String()]
-        // if there is no binding for this term, just return it as is
-        if d == nil {
-            return t
-        }
-        // if what was returned is a variable, dereference that again
-        if d.GetType() == ast.T_Variable {
-            return b.Dereference(d)
-        }
+	termType := t.GetType()
+	if termType == ast.T_Variable {
+		d := b.B[t.(*ast.Variable).String()]
+		// if there is no binding for this term, just return it as is
+		if d == nil {
+			return t
+		}
+		// if what was returned is a variable, dereference that again
+		if d.GetType() == ast.T_Variable {
+			return b.Dereference(d)
+		}
 
-        // otherwise, return whatever we got
-        return d
-    }
-    return t
+		// otherwise, return whatever we got
+		return d
+	}
+	return t
 }
 
 type FactResolver interface {
@@ -88,7 +87,7 @@ func New(i indexer.Indexer) *R {
 		i: i,
 	}
 	r.AddFactResolvers([]FactResolver{
-        &Equals{},
+		&Equals{},
 		&Writeln{r},
 		&True{},
 		&Fail{},
@@ -185,11 +184,11 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 		}
 	}
 
-	// TODO: if nothing matched, invoke the default behavior
+    // If we didnt find a matching resolver, follow the default behavior 
 	// Find all of the statements that match the signature
 	matching := r.i.StatementsForSignature(f.Signature())
-
-    // attempt to unify the input fact with each of the matching statements
+fmt.Println("MATCH", matching)
+	// attempt to unify the input fact with each of the matching statements
 	// return each one that does unify as a result binding
 	for _, s := range matching {
 		t := s.GetType()

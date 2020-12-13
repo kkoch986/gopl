@@ -50,6 +50,37 @@ func (f *Fact) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
+func (f *Fact) UnmarshalJSON(b []byte) error {
+	rm := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &rm)
+	if err != nil {
+		return err
+	}
+
+	// parse the head
+	err = json.Unmarshal(rm["f"], &f.Head)
+	if err != nil {
+		return err
+	}
+
+	// parse the args
+	var rmArgs []json.RawMessage
+	err = json.Unmarshal(rm["a"], &rmArgs)
+	if err != nil {
+		return err
+	}
+
+	for _, v := range rmArgs {
+		t, err := UnmarshalJSONTerm(v)
+		if err != nil {
+			return err
+		}
+		f.Args = append(f.Args, t)
+	}
+
+	return nil
+}
+
 func (f *Fact) Signature() *Signature {
 	return &Signature{f.Head, len(f.Args)}
 }

@@ -52,6 +52,32 @@ func (q *Query) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
+func (q *Query) UnmarshalJSON(b []byte) error {
+	rm := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &rm)
+	if err != nil {
+		return err
+	}
+
+	// parse the args
+	var rmArgs []json.RawMessage
+	err = json.Unmarshal(rm["b"], &rmArgs)
+	if err != nil {
+		return err
+	}
+
+	for _, v := range rmArgs {
+		f := &Fact{}
+		err = json.Unmarshal(v, f)
+		if err != nil {
+			return err
+		}
+		*q = append(*q, *f)
+	}
+
+	return nil
+}
+
 func (q *Query) Empty() bool {
 	return len(*q) == 0
 }
@@ -77,6 +103,10 @@ func (r *Rule) GetType() TermType {
 	return T_Rule
 }
 
+func (r *Rule) Signature() *Signature {
+    return r.Head.Signature()
+}
+
 func (q *Rule) String() string {
 	stringList := []string{}
 
@@ -93,4 +123,26 @@ func (q *Rule) MarshalJSON() ([]byte, error) {
 	m["h"] = q.Head
 	m["b"] = q.Body
 	return json.Marshal(m)
+}
+
+func (r *Rule) UnmarshalJSON(b []byte) error {
+	rm := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &rm)
+	if err != nil {
+		return err
+	}
+
+	// unmarshal the head
+	err = json.Unmarshal(rm["h"], &r.Head)
+	if err != nil {
+		return err
+	}
+
+	// TODO: unmarshal the body
+	err = json.Unmarshal(rm["b"], &r.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

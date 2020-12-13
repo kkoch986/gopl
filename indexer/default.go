@@ -18,6 +18,7 @@ func NewDefault() *Default {
 	}
 }
 
+// TODO: prevent duplicates of the same facts from being indexed
 func (d *Default) IndexStatement(s ast.Statement) {
 	switch s.GetType() {
 	case ast.T_Fact:
@@ -32,6 +33,7 @@ func (d *Default) indexFact(f *ast.Fact) {
 }
 
 func (d *Default) indexRule(r *ast.Rule) {
+	d.bySig[r.Signature().String()] = append(d.bySig[r.Signature().String()], r)
 }
 
 func (d *Default) StatementsForSignature(s *ast.Signature) []ast.Statement {

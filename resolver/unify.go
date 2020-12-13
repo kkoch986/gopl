@@ -17,10 +17,10 @@ func (w *Equals) Resolve(fact *ast.Fact, c *Bindings, out chan<- *Bindings, m ch
 	defer close(out)
 	defer close(m)
 
-    b := unifyTerms(fact.Args[0], fact.Args[1], c)
-    if b != nil {
-	    out <- b
-    }
+	b := unifyTerms(fact.Args[0], fact.Args[1], c)
+	if b != nil {
+		out <- b
+	}
 	m <- true
 }
 
@@ -58,13 +58,13 @@ func unifyFacts(base *ast.Fact, query *ast.Fact, b *Bindings) *Bindings {
  */
 func unifyTerms(base ast.Term, query ast.Term, b *Bindings) *Bindings {
 	// if either is a variable, derefence it first
-    base = b.Dereference(base)
-    query = b.Dereference(query)
+	base = b.Dereference(base)
+	query = b.Dereference(query)
 
-    baseType := base.GetType()
+	baseType := base.GetType()
 	queryType := query.GetType()
 
-    // UNIFY TERMINALS
+	// UNIFY TERMINALS
 	// The most basic case is if both are primitive terms (string, atom, number)
 	// Basically are they the same value?
 	if (baseType == ast.T_String || baseType == ast.T_Atom) && (queryType == ast.T_String || queryType == ast.T_Atom) {
@@ -81,49 +81,49 @@ func unifyTerms(base ast.Term, query ast.Term, b *Bindings) *Bindings {
 		return nil
 	}
 
-    // VARIABLES
-    // If both are variables, pick one and assign it to the other
-    //   this needs to be done deterministically so for now just go with alphabetical order by the variable name
-    // If only one is a variable, attempt to bind that variable to the other
-    if baseType == ast.T_Variable && queryType == ast.T_Variable {
-        // if both terms represent the same variable, do not do any binding
-        // but _do_ return the current bindings since they do technically unify
-        if(base.String() == query.String()) {
-            return b
-        } else if base.String() < query.String() {
-            test := b.Clone()
-            if test.Bind(base.String(), query) {
-                return test
-            }
-            return nil
-        } else {
-            test := b.Clone()
-            if test.Bind(query.String(), base) {
-                return test
-            }
-            return nil
-        }
-    } else if baseType == ast.T_Variable {
-        // create a copy of the bindings so we can test things out and return it if its ok
-        test := b.Clone()
-        if test.Bind(base.String(), query) {
-            return test
-        }
-        return nil
-    } else if queryType == ast.T_Variable {
-        // create a copy of the bindings so we can test things out and return it if its ok
-        test := b.Clone()
-        if test.Bind(query.String(), base) {
-            return test
-        }
-        return nil
-    }
+	// VARIABLES
+	// If both are variables, pick one and assign it to the other
+	//   this needs to be done deterministically so for now just go with alphabetical order by the variable name
+	// If only one is a variable, attempt to bind that variable to the other
+	if baseType == ast.T_Variable && queryType == ast.T_Variable {
+		// if both terms represent the same variable, do not do any binding
+		// but _do_ return the current bindings since they do technically unify
+		if base.String() == query.String() {
+			return b
+		} else if base.String() < query.String() {
+			test := b.Clone()
+			if test.Bind(base.String(), query) {
+				return test
+			}
+			return nil
+		} else {
+			test := b.Clone()
+			if test.Bind(query.String(), base) {
+				return test
+			}
+			return nil
+		}
+	} else if baseType == ast.T_Variable {
+		// create a copy of the bindings so we can test things out and return it if its ok
+		test := b.Clone()
+		if test.Bind(base.String(), query) {
+			return test
+		}
+		return nil
+	} else if queryType == ast.T_Variable {
+		// create a copy of the bindings so we can test things out and return it if its ok
+		test := b.Clone()
+		if test.Bind(query.String(), base) {
+			return test
+		}
+		return nil
+	}
 
-    // UNIFY FACTS
-    if (baseType == ast.T_Fact && queryType == ast.T_Fact) {
-        return unifyFacts(base.(*ast.Fact), query.(*ast.Fact), b)
-    }
+	// UNIFY FACTS
+	if baseType == ast.T_Fact && queryType == ast.T_Fact {
+		return unifyFacts(base.(*ast.Fact), query.(*ast.Fact), b)
+	}
 
-    // If we fall all the way through, assume there are no bindings
+	// If we fall all the way through, assume there are no bindings
 	return nil
 }

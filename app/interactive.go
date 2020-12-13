@@ -42,13 +42,13 @@ func (q *QueryCLI) execCommand(t string) {
 		log.Println("Resolving...")
 		go q.R.ResolveStatementList(a, &resolver.Bindings{}, output)
 		for v := range output {
-            if v.Empty() {
-                fmt.Println("Yes.")
-            } else {
-		        fmt.Println("OUTPUT", v)
-            }
+			if v.Empty() {
+				fmt.Println("Yes.")
+			} else {
+				fmt.Println("OUTPUT", v)
+			}
 
-            t := prompt.Input(">", completer)
+			t := prompt.Input(">", completer)
 			if t != ";" {
 				return
 			}
@@ -66,6 +66,8 @@ func exitChecker(t string, breakline bool) bool {
 
 func (q *QueryCLI) Run() error {
 	log.Println("Welcome to GoPL")
+
+	// TODO: support persistent command history using a ~/.gopl_history file and the `prompt.OptionHistory([]string)` option
 
 	qPrompt := prompt.New(
 		q.execCommand,
