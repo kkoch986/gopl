@@ -19,6 +19,7 @@ import (
 type QueryCLI struct {
 	I indexer.Indexer
 	R *resolver.R
+    H *history
 }
 
 func completer(d prompt.Document) []prompt.Suggest {
@@ -31,11 +32,13 @@ func completer(d prompt.Document) []prompt.Suggest {
 }
 
 func (q *QueryCLI) execCommand(t string) {
+    // insert the command into the history
+    go q.H.Insert(t)
+
 	// lex and parse the input
 	l := lexer.New([]rune("?- " + t))
 	if bsrSet, errs := parser.Parse(l); len(errs) > 0 {
 		log.Println(errs)
-		//return errors.New("Parser Error")
 	} else {
 		a := ast.BuildStatementList(bsrSet.GetRoot())
 		output := make(chan *resolver.Bindings, 1)
@@ -66,14 +69,12 @@ func exitChecker(t string, breakline bool) bool {
 
 func (q *QueryCLI) Run() error {
 	log.Println("Welcome to GoPL")
-
-	// TODO: support persistent command history using a ~/.gopl_history file and the `prompt.OptionHistory([]string)` option
-
 	qPrompt := prompt.New(
 		q.execCommand,
 		completer,
 		prompt.OptionPrefix("?- "),
 		prompt.OptionSetExitCheckerOnInput(exitChecker),
+        prompt.OptionHistory(q.H.Items()),
 	)
 	// Enter a REPL
 	qPrompt.Run()

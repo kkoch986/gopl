@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 	"os"
-	//"bufio"
 	"fmt"
 
 	"github.com/urfave/cli/v2"
@@ -73,11 +72,20 @@ var App = &cli.App{
 			Flags:   []cli.Flag{},
 			Action: func(c *cli.Context) error {
 				i := indexer.NewDefault()
+                // TODO: let flags define these
+                h, err := NewHistory(os.Getenv("HOME") + "/.gopl_history", 1000)
+
+                if err != nil {
+                    log.Fatal(err)
+                    return err
+                }
+
 				shell := &QueryCLI{
 					I: i,
 					R: resolver.New(i),
+                    H: h,
 				}
-				err := shell.Run()
+				err = shell.Run()
 				if err != nil {
 					log.Fatal(err)
 					return err
