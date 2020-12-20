@@ -25,9 +25,12 @@ func (b *Bindings) Clone() *Bindings {
 }
 
 func (b *Bindings) Bind(k string, v ast.Term) bool {
+    fmt.Printf("[BIND] %s -> %s", k, v)
 	if b.B[k] != nil {
+        fmt.Printf("     FAIL (already bound to %s)\n", b.B[k])
 		return false
 	}
+    fmt.Println("    SUCCESS")
 	b.B[k] = v
 	return true
 }
@@ -121,15 +124,19 @@ func (r *R) ResolveStatementList(sl []ast.Statement, c *Bindings, out chan<- *Bi
 }
 
 func (r *R) ResolveStatement(s ast.Statement, c *Bindings, out chan<- *Bindings) {
-	log.Printf("[ResolveStatement] %s", s)
-
 	t := s.GetType()
+	log.Printf("[ResolveStatement] %s (%s)", s, t)
+
 	switch t {
 	case ast.T_Query:
 		go r.ResolveQuery(s.(*ast.Query), c, out)
 	case ast.T_Rule:
+        fallthrough
 	case ast.T_Fact:
+        fallthrough
 	default:
+        fmt.Println("how to resolve?", t)
+        close(out)
 	}
 }
 
@@ -197,7 +204,55 @@ fmt.Println("MATCH", matching)
 			if newBinding != nil {
 				out <- newBinding
 			}
-		} else {
+		} else if(t == ast.T_Rule) {
+            rule := s.(*ast.Rule)
+            fmt.Println("Unifiy with rule %s", rule)
+            // We are trying to unify a Fact (the query) and a Rule (the base)
+            // To unify a fact with a rule, follow this procedure:
+            //    1. create an initial "stack frame" by unifying the query with the head of the base rule
+            //    2. With that binding, resolve the body of the rule as if it were a query.
+            //    3. With each resulting binding:
+            //       - extract the variables from the head of the query fact
+            //       - return a new binding which binds each variable from the query fact to its corresponding
+            //         value in the "stack frame" binding.
+            // not sure this comment is enlightening but hopefully it and the code make sense together...
+            initialBinding := unifyFacts(rule.Head, f, c)
+
+            if initialBinding == nil {
+                continue
+            }
+
+            fmt.Printf("initial binding: %s\n", *initialBinding)
+
+            // set up a channel to receive valid resolutions of the body of the rule
+            discoveredBindings := make(chan *Bindings, 2)
+            q := ast.Query(rule.Body)
+            go r.ResolveStatementList([]ast.Statement{&q}, initialBinding, discoveredBindings)
+            for db := range(discoveredBindings) {
+                // find all of the variables defined by the head of the rule
+                // lookup their values in the discovered binding
+                // if it is bound to a non-variable, add the same binding to a clone of `c` and return that
+                outBinding := c.Clone()
+                valid := true
+                for _, variable := range(rule.Head.ExtractVariables()) {
+                    deref := db.Dereference(variable)
+                    if(deref == nil) {
+                        continue 
+                    }
+
+                    derefType := deref.GetType()
+                    if(derefType != ast.T_Variable) {
+                        if(!outBinding.Bind(variable.String(), deref)) {
+                            valid = false
+                            break 
+                        }
+                    }
+                }
+                if(valid) {
+                    out <- outBinding
+                }
+            }
+        } else {
 			fmt.Println("TODO: other types of fact unification")
 		}
 	}

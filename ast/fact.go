@@ -42,6 +42,24 @@ func (f *Fact) String() string {
 	return fmt.Sprintf("%s(%s)", f.Head, strings.Join(args, ","))
 }
 
+func (f * Fact) ExtractVariables() []*Variable {
+    ret := []*Variable{}
+    
+    for _, v := range(f.Args) {
+        t := v.GetType()
+        switch(t) {
+            case T_Fact:
+                for _,v2 := range(v.(* Fact).ExtractVariables()) {
+                    ret = append(ret, v2)
+                }
+            case T_Variable:
+                ret = append(ret, v.(*Variable))
+        }
+    }
+
+    return ret
+}
+
 func (f *Fact) MarshalJSON() ([]byte, error) {
 	m := make(map[string]interface{})
 	m["t"] = "fact"

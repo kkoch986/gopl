@@ -29,7 +29,7 @@ type Statement interface {
 	String() string
 }
 
-type Query []Fact
+type Query []*Fact
 
 func (q *Query) String() string {
 	stringList := []string{}
@@ -72,7 +72,7 @@ func (q *Query) UnmarshalJSON(b []byte) error {
 		if err != nil {
 			return err
 		}
-		*q = append(*q, *f)
+		*q = append(*q, f)
 	}
 
 	return nil
@@ -86,7 +86,7 @@ func (q *Query) Head() *Fact {
 	if q.Empty() {
 		return nil
 	}
-	return &(*q)[0]
+	return (*q)[0]
 }
 
 func (q *Query) Tail() *Query {
@@ -95,8 +95,8 @@ func (q *Query) Tail() *Query {
 }
 
 type Rule struct {
-	Head Fact
-	Body []Fact
+	Head *Fact
+	Body []*Fact
 }
 
 func (r *Rule) GetType() TermType {
@@ -111,7 +111,7 @@ func (q *Rule) String() string {
 	stringList := []string{}
 
 	for _, v := range q.Body {
-		stringList = append(stringList, (&v).String())
+		stringList = append(stringList, (v).String())
 	}
 
 	return fmt.Sprintf("%s :- %s", &q.Head, strings.Join(stringList, ","))

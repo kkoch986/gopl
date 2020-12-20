@@ -74,22 +74,22 @@ func BuildRule(b bsr.BSR) *Rule {
 	bodybsr := b.GetNTChild(symbols.NT_FactList, 0)
 	body := BuildFactList(bodybsr)
 
-	return &Rule{*head, body}
+	return &Rule{head, body}
 }
 
-func BuildFactList(b bsr.BSR) []Fact {
+func BuildFactList(b bsr.BSR) []*Fact {
 	sl := b.GetNTChildI(0)
 	t := sl.Label.Head().String()
 
 	if t == "Fact" {
 		f := BuildFact(sl)
 		if f != nil {
-			return []Fact{*f}
+			return []*Fact{f}
 		}
 	} else if t == "FactList" {
 		l := BuildFactList(sl)
 
-		ret := []Fact{}
+		ret := []*Fact{}
 		for _, v := range l {
 			ret = append(ret, v)
 		}
@@ -102,12 +102,12 @@ func BuildFactList(b bsr.BSR) []Fact {
 			panic("Unable to parse fact")
 		}
 
-		ret = append(ret, *fact)
+		ret = append(ret, fact)
 		return ret
 	} else {
 		panic("Unknown type found in FactList: " + t)
 	}
-	return []Fact{}
+	return []*Fact{}
 }
 
 func BuildQuery(b bsr.BSR) *Query {
@@ -117,7 +117,7 @@ func BuildQuery(b bsr.BSR) *Query {
 	if t == "Fact" {
 		f := BuildFact(c)
 		if f != nil {
-			return &Query{*f}
+			return &Query{f}
 		}
 	} else if t == "Concatenation" {
 		cl := BuildQuery(c)
@@ -135,7 +135,7 @@ func BuildQuery(b bsr.BSR) *Query {
 			panic("Unable to parse fact")
 		}
 
-		ret = append(ret, *fact)
+		ret = append(ret, fact)
 		return &ret
 	} else {
 		panic("Unknown type found in Query: " + t)
