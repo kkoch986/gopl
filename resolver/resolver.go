@@ -8,64 +8,6 @@ import (
 	"github.com/kkoch986/gopl/indexer"
 )
 
-type Bindings struct {
-	B map[string]ast.Term
-}
-
-func (b *Bindings) Empty() bool {
-	return len(b.B) == 0
-}
-
-func (b *Bindings) Clone() *Bindings {
-	newMap := make(map[string]ast.Term)
-	for i, v := range b.B {
-		newMap[i] = v
-	}
-	return &Bindings{newMap}
-}
-
-func (b *Bindings) Bind(k string, v ast.Term) bool {
-    fmt.Printf("[BIND] %s -> %s", k, v)
-	if b.B[k] != nil {
-        fmt.Printf("     FAIL (already bound to %s)\n", b.B[k])
-		return false
-	}
-    fmt.Println("    SUCCESS")
-	b.B[k] = v
-	return true
-}
-
-func (b *Bindings) String() string {
-	ret := "Bindings: \n"
-	for k, v := range b.B {
-		ret = ret + fmt.Sprintf("\t%s: %s\n", k, v)
-	}
-	return ret
-}
-
-/**
- * Derefernce takes a term and returns a term.
- * If the term is a variable, and there is a binding present, it will return that term
- */
-func (b *Bindings) Dereference(t ast.Term) ast.Term {
-	termType := t.GetType()
-	if termType == ast.T_Variable {
-		d := b.B[t.(*ast.Variable).String()]
-		// if there is no binding for this term, just return it as is
-		if d == nil {
-			return t
-		}
-		// if what was returned is a variable, dereference that again
-		if d.GetType() == ast.T_Variable {
-			return b.Dereference(d)
-		}
-
-		// otherwise, return whatever we got
-		return d
-	}
-	return t
-}
-
 type FactResolver interface {
 	Resolve(*ast.Fact, *Bindings, chan<- *Bindings, chan<- bool)
 }
@@ -131,12 +73,12 @@ func (r *R) ResolveStatement(s ast.Statement, c *Bindings, out chan<- *Bindings)
 	case ast.T_Query:
 		go r.ResolveQuery(s.(*ast.Query), c, out)
 	case ast.T_Rule:
-        fallthrough
+		fallthrough
 	case ast.T_Fact:
-        fallthrough
+		fallthrough
 	default:
-        fmt.Println("how to resolve?", t)
-        close(out)
+		fmt.Println("how to resolve?", t)
+		close(out)
 	}
 }
 
@@ -191,68 +133,68 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 		}
 	}
 
-    // If we didnt find a matching resolver, follow the default behavior 
+	// If we didnt find a matching resolver, follow the default behavior
 	// Find all of the statements that match the signature
 	matching := r.i.StatementsForSignature(f.Signature())
-fmt.Println("MATCH", matching)
 	// attempt to unify the input fact with each of the matching statements
 	// return each one that does unify as a result binding
 	for _, s := range matching {
+		fmt.Println("MATCH", s)
 		t := s.GetType()
 		if t == ast.T_Fact {
 			newBinding := unifyFacts(s.(*ast.Fact), f, c)
 			if newBinding != nil {
 				out <- newBinding
 			}
-		} else if(t == ast.T_Rule) {
-            rule := s.(*ast.Rule)
-            fmt.Println("Unifiy with rule %s", rule)
-            // We are trying to unify a Fact (the query) and a Rule (the base)
-            // To unify a fact with a rule, follow this procedure:
-            //    1. create an initial "stack frame" by unifying the query with the head of the base rule
-            //    2. With that binding, resolve the body of the rule as if it were a query.
-            //    3. With each resulting binding:
-            //       - extract the variables from the head of the query fact
-            //       - return a new binding which binds each variable from the query fact to its corresponding
-            //         value in the "stack frame" binding.
-            // not sure this comment is enlightening but hopefully it and the code make sense together...
-            initialBinding := unifyFacts(rule.Head, f, c)
+		} else if t == ast.T_Rule {
+			rule := s.(*ast.Rule)
+			fmt.Printf("Unify with rule %s\n", rule)
+			// We are trying to unify a Fact (the query) and a Rule (the base)
+			// To unify a fact with a rule, follow this procedure:
+			//    1. create an initial "stack frame" by unifying the query with the head of the base rule
+			//    2. With that binding, resolve the body of the rule as if it were a query.
+			//    3. With each resulting binding:
+			//       - extract the variables from the head of the query fact
+			//       - return a new binding which binds each variable from the query fact to its corresponding
+			//         value in the "stack frame" binding.
+			// not sure this comment is enlightening but hopefully it and the code make sense together...
+			initialBinding := unifyFacts(rule.Head, f, c)
 
-            if initialBinding == nil {
-                continue
-            }
+			if initialBinding == nil {
+				continue
+			}
 
-            fmt.Printf("initial binding: %s\n", *initialBinding)
+			fmt.Printf("initial binding: %s\n", *initialBinding)
 
-            // set up a channel to receive valid resolutions of the body of the rule
-            discoveredBindings := make(chan *Bindings, 2)
-            q := ast.Query(rule.Body)
-            go r.ResolveStatementList([]ast.Statement{&q}, initialBinding, discoveredBindings)
-            for db := range(discoveredBindings) {
-                // find all of the variables defined by the head of the rule
-                // lookup their values in the discovered binding
-                // if it is bound to a non-variable, add the same binding to a clone of `c` and return that
-                outBinding := c.Clone()
-                valid := true
-                for _, variable := range(rule.Head.ExtractVariables()) {
-                    deref := db.Dereference(variable)
-                    if(deref == nil) {
-                        continue 
-                    }
+			// set up a channel to receive valid resolutions of the body of the rule
+			discoveredBindings := make(chan *Bindings, 2)
+			q := ast.Query(rule.Body)
+			go r.ResolveStatementList([]ast.Statement{&q}, initialBinding, discoveredBindings)
+			for db := range discoveredBindings {
+				// find all of the variables defined by the head of the rule
+				// lookup their values in the discovered binding
+				// if it is bound to a non-variable, add the same binding to a clone of `c` and return that
+				outBinding := c.Clone()
+				valid := true
+				for _, variable := range rule.Head.ExtractVariables() {
+					deref := db.Dereference(variable)
+					if deref == nil {
+						continue
+					}
 
-                    derefType := deref.GetType()
-                    if(derefType != ast.T_Variable) {
-                        if(!outBinding.Bind(variable.String(), deref)) {
-                            valid = false
-                            break 
-                        }
-                    }
-                }
-                if(valid) {
-                    out <- outBinding
-                }
-            }
-        } else {
+					derefType := deref.GetType()
+					if derefType != ast.T_Variable {
+						if !outBinding.Bind(variable.String(), deref) {
+							valid = false
+							continue
+						}
+					}
+				}
+				if valid {
+					out <- outBinding
+				}
+			}
+		} else {
 			fmt.Println("TODO: other types of fact unification")
 		}
 	}

@@ -104,7 +104,7 @@ func (r *Rule) GetType() TermType {
 }
 
 func (r *Rule) Signature() *Signature {
-    return r.Head.Signature()
+	return r.Head.Signature()
 }
 
 func (q *Rule) String() string {
@@ -114,7 +114,7 @@ func (q *Rule) String() string {
 		stringList = append(stringList, (v).String())
 	}
 
-	return fmt.Sprintf("%s :- %s", &q.Head, strings.Join(stringList, ","))
+	return fmt.Sprintf("%s :- %s", q.Head, strings.Join(stringList, ","))
 }
 
 func (q *Rule) MarshalJSON() ([]byte, error) {

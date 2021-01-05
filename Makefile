@@ -5,8 +5,6 @@ SOURCE_DIR=.
 SOURCES=$(shell find $(SOURCE_DIR) -name '*.go')
 GO111MODULE?=on
 
-
-
 all: build
 
 build: parser $(BIN_DIR)/$(BIN_NAME)

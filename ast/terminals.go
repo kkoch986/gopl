@@ -36,7 +36,7 @@ func UnmarshalJSONTerm(b []byte) (Term, error) {
 		v := &Variable{}
 		err = json.Unmarshal(b, v)
 		return v, err
-    case "fact":
+	case "fact":
 		f := &Fact{}
 		err = json.Unmarshal(b, f)
 		return f, err
@@ -100,6 +100,9 @@ func (v *Variable) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func CreateVariable(v string) *Variable {
+	return &Variable{v}
+}
 
 /**
  * Atom
@@ -133,6 +136,10 @@ func (v *Atom) UnmarshalJSON(b []byte) error {
 	}
 	v.string = s
 	return nil
+}
+
+func CreateAtom(v string) *Atom {
+	return &Atom{v}
 }
 
 /**
@@ -169,6 +176,10 @@ func (v *StringLiteral) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func CreateStringLiteral(v string) *StringLiteral {
+	return &StringLiteral{v}
+}
+
 /**
  * NumericLiteral
  */
@@ -203,4 +214,8 @@ func (v *NumericLiteral) UnmarshalJSON(b []byte) error {
 	}
 	v.float64 = s
 	return nil
+}
+
+func CreateNumericLiteral(v float64) *NumericLiteral {
+	return &NumericLiteral{v}
 }

@@ -19,7 +19,7 @@ import (
 type QueryCLI struct {
 	I indexer.Indexer
 	R *resolver.R
-    H *history
+	H *history
 }
 
 func completer(d prompt.Document) []prompt.Suggest {
@@ -32,8 +32,8 @@ func completer(d prompt.Document) []prompt.Suggest {
 }
 
 func (q *QueryCLI) execCommand(t string) {
-    // insert the command into the history
-    go q.H.Insert(t)
+	// insert the command into the history
+	go q.H.Insert(t)
 
 	// lex and parse the input
 	l := lexer.New([]rune("?- " + t))
@@ -74,7 +74,7 @@ func (q *QueryCLI) Run() error {
 		completer,
 		prompt.OptionPrefix("?- "),
 		prompt.OptionSetExitCheckerOnInput(exitChecker),
-        prompt.OptionHistory(q.H.Items()),
+		prompt.OptionHistory(q.H.Items()),
 	)
 	// Enter a REPL
 	qPrompt.Run()

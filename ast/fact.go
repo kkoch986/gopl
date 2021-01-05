@@ -24,6 +24,33 @@ func (f *Fact) GetType() TermType {
 	return T_Fact
 }
 
+func (f *Fact) Anonymize(start int, existing *map[string]string) (*Fact, int) {
+	used := 0
+	anonymousBody := []Term{}
+	for _, v := range f.Args {
+		t := v.GetType()
+		switch t {
+		case T_Variable:
+			if (*existing)[v.String()] != "" {
+				anonymousBody = append(anonymousBody, &Variable{(*existing)[v.String()]})
+			} else {
+				newVal := fmt.Sprintf("_h%d", start+used)
+				anonymousBody = append(anonymousBody, &Variable{newVal})
+				(*existing)[v.String()] = newVal
+				used = used + 1
+			}
+		case T_Fact:
+			af, u := v.(*Fact).Anonymize(start+used, existing)
+			used = used + u
+			anonymousBody = append(anonymousBody, af)
+		default:
+			anonymousBody = append(anonymousBody, v)
+		}
+	}
+
+	return &Fact{f.Head, anonymousBody}, used
+}
+
 func (f *Fact) String() string {
 	args := []string{}
 
@@ -42,22 +69,22 @@ func (f *Fact) String() string {
 	return fmt.Sprintf("%s(%s)", f.Head, strings.Join(args, ","))
 }
 
-func (f * Fact) ExtractVariables() []*Variable {
-    ret := []*Variable{}
-    
-    for _, v := range(f.Args) {
-        t := v.GetType()
-        switch(t) {
-            case T_Fact:
-                for _,v2 := range(v.(* Fact).ExtractVariables()) {
-                    ret = append(ret, v2)
-                }
-            case T_Variable:
-                ret = append(ret, v.(*Variable))
-        }
-    }
+func (f *Fact) ExtractVariables() []*Variable {
+	ret := []*Variable{}
 
-    return ret
+	for _, v := range f.Args {
+		t := v.GetType()
+		switch t {
+		case T_Fact:
+			for _, v2 := range v.(*Fact).ExtractVariables() {
+				ret = append(ret, v2)
+			}
+		case T_Variable:
+			ret = append(ret, v.(*Variable))
+		}
+	}
+
+	return ret
 }
 
 func (f *Fact) MarshalJSON() ([]byte, error) {
