@@ -36,7 +36,6 @@ func New(i indexer.Indexer) *R {
 		&Writeln{r},
 		&True{},
 		&Fail{},
-		&Load{},
 		&Assert{i},
 	})
 	return r
