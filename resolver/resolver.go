@@ -33,7 +33,7 @@ func New(i indexer.Indexer) *R {
 	}
 	r.AddFactResolvers([]FactResolver{
 		&Equals{},
-		&Writeln{r},
+		&Writeln{},
 		&True{},
 		&Fail{},
 		&Assert{i},
