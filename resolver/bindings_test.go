@@ -9,7 +9,7 @@ import "github.com/kkoch986/gopl/ast"
  */
 func TestEmpty(t *testing.T) {
 	// a new binding should be empty
-	b := CreateBindings()
+	b := EmptyBindings()
 	if !b.Empty() {
 		t.Errorf("New binding is not empty")
 	}
@@ -27,7 +27,7 @@ func TestEmpty(t *testing.T) {
  * TestDeref will test various cases of bindings and dereferences
  */
 func TestDeref(t *testing.T) {
-	b := CreateBindings()
+	b := EmptyBindings()
 
 	// dereferencing something that is not a variable should just return that thing
 	var bases = []ast.Term{
@@ -88,7 +88,7 @@ func TestDeref(t *testing.T) {
  * TestClone will test that a cloned binding does not affect the original object
  */
 func TestClone(t *testing.T) {
-	b := CreateBindings()
+	b := EmptyBindings()
 
 	// bind some variables
 	b.Bind("a", ast.CreateVariable("A"))

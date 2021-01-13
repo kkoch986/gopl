@@ -37,7 +37,10 @@ func (d *Default) indexFact(f *ast.Fact) {
 }
 
 func (d *Default) indexRule(r *ast.Rule) {
-	d.bySig[r.Signature().String()] = append(d.bySig[r.Signature().String()], r)
+	ar, used := r.Anonymize(d.nextVar)
+	d.nextVar += used
+	fmt.Println(ar)
+	d.bySig[r.Signature().String()] = append(d.bySig[r.Signature().String()], ar)
 }
 
 func (d *Default) StatementsForSignature(s *ast.Signature) []ast.Statement {

@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/kkoch986/gopl/ast"
 )
@@ -10,10 +11,14 @@ type Bindings struct {
 	B map[string]ast.Term
 }
 
-func CreateBindings() *Bindings {
+func EmptyBindings() *Bindings {
 	b := Bindings{}
 	b.B = make(map[string]ast.Term)
 	return &b
+}
+
+func CreateBindings(m map[string]ast.Term) *Bindings {
+	return &Bindings{m}
 }
 
 func (b *Bindings) Empty() bool {
@@ -29,12 +34,12 @@ func (b *Bindings) Clone() *Bindings {
 }
 
 func (b *Bindings) Bind(k string, v ast.Term) bool {
-	fmt.Printf("[BIND] %s -> %s", k, v)
-	if b.B[k] != nil {
-		fmt.Printf("     FAIL (already bound to %s)\n", b.B[k])
+	log.Printf("[BIND] %s -> %s", k, v)
+	if b.B[k] != nil && b.B[k] != v {
+		log.Printf("[BIND] %s -> %s   FAIL (already bound to %s)\n", k, v, b.B[k])
 		return false
 	}
-	fmt.Println("    SUCCESS")
+	log.Printf("[BIND] %s -> %s     SUCCESS", k, v)
 	b.B[k] = v
 	return true
 }

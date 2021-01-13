@@ -19,6 +19,8 @@ func (w *Writeln) Resolve(fact *ast.Fact, c *Bindings, out chan<- *Bindings, m c
 	defer close(out)
 	defer close(m)
 
+	// TODO: use r to resolve the arg
+
 	fmt.Println(fact.Args[0])
 	out <- c
 	m <- true

@@ -49,13 +49,13 @@ func (r *R) ResolveStatementList(sl []ast.Statement, c *Bindings, out chan<- *Bi
 	}
 
 	// find all the bindings for the first statement
-	headBindings := make(chan *Bindings, 2)
+	headBindings := make(chan *Bindings, 1)
 	tail := sl[1:]
 
 	go r.ResolveStatement(sl[0], c, headBindings)
 	for hb := range headBindings {
 		// for each binding of the first element of the list, try to resolve the next
-		tailBindings := make(chan *Bindings, 2)
+		tailBindings := make(chan *Bindings, 1)
 		go r.ResolveStatementList(tail, hb, tailBindings)
 		for ob := range tailBindings {
 			out <- ob
@@ -92,13 +92,13 @@ func (r *R) ResolveQuery(q *ast.Query, c *Bindings, out chan<- *Bindings) {
 	}
 
 	// A query is an array of facts, recursively loop over each to DFS all possible bindings
-	headBindings := make(chan *Bindings, 2)
+	headBindings := make(chan *Bindings, 1)
 	tail := q.Tail()
 	go r.ResolveFact(q.Head(), c, headBindings)
 
 	for hb := range headBindings {
 		// find all resolutions of the tail and run them back to out
-		tailBindings := make(chan *Bindings, 2)
+		tailBindings := make(chan *Bindings, 1)
 		go r.ResolveQuery(tail, hb, tailBindings)
 		for ob := range tailBindings {
 			out <- ob
@@ -138,7 +138,6 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 	// attempt to unify the input fact with each of the matching statements
 	// return each one that does unify as a result binding
 	for _, s := range matching {
-		fmt.Println("MATCH", s)
 		t := s.GetType()
 		if t == ast.T_Fact {
 			newBinding := unifyFacts(s.(*ast.Fact), f, c)
@@ -147,7 +146,6 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 			}
 		} else if t == ast.T_Rule {
 			rule := s.(*ast.Rule)
-			fmt.Printf("Unify with rule %s\n", rule)
 			// We are trying to unify a Fact (the query) and a Rule (the base)
 			// To unify a fact with a rule, follow this procedure:
 			//    1. create an initial "stack frame" by unifying the query with the head of the base rule
@@ -163,10 +161,8 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 				continue
 			}
 
-			fmt.Printf("initial binding: %s\n", *initialBinding)
-
 			// set up a channel to receive valid resolutions of the body of the rule
-			discoveredBindings := make(chan *Bindings, 2)
+			discoveredBindings := make(chan *Bindings, 1)
 			q := ast.Query(rule.Body)
 			go r.ResolveStatementList([]ast.Statement{&q}, initialBinding, discoveredBindings)
 			for db := range discoveredBindings {
@@ -175,7 +171,7 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 				// if it is bound to a non-variable, add the same binding to a clone of `c` and return that
 				outBinding := c.Clone()
 				valid := true
-				for _, variable := range rule.Head.ExtractVariables() {
+				for _, variable := range f.ExtractVariables() {
 					deref := db.Dereference(variable)
 					if deref == nil {
 						continue

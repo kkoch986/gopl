@@ -117,6 +117,25 @@ func (q *Rule) String() string {
 	return fmt.Sprintf("%s :- %s", q.Head, strings.Join(stringList, ","))
 }
 
+func (r *Rule) Anonymize(start int) (*Rule, int) {
+	used := 0
+	anonymousBody := []*Fact{}
+	existing := make(map[string]string)
+
+	// anonymize the head of the fact and set those bindings
+	anonymousHead, moreUsed := r.Head.Anonymize(start+used, &existing)
+	used = used + moreUsed
+
+	// now start anonymizing the body
+	for _, f := range r.Body {
+		af, u := f.Anonymize(start+used, &existing)
+		used = used + u
+		anonymousBody = append(anonymousBody, af)
+	}
+
+	return &Rule{anonymousHead, anonymousBody}, used
+}
+
 func (q *Rule) MarshalJSON() ([]byte, error) {
 	m := make(map[string]interface{})
 	m["t"] = "rule"
