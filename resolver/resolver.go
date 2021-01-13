@@ -41,11 +41,11 @@ func New(i indexer.Indexer) *R {
 	return r
 }
 
-func (r *R) ResolveStatementList(sl []ast.Statement, c *Bindings, out chan<- *Bindings) error {
+func (r *R) ResolveStatementList(sl []ast.Statement, c *Bindings, out chan<- *Bindings) {
 	defer close(out)
 	if len(sl) == 0 {
 		out <- c
-		return nil
+		return
 	}
 
 	// find all the bindings for the first statement
@@ -61,7 +61,6 @@ func (r *R) ResolveStatementList(sl []ast.Statement, c *Bindings, out chan<- *Bi
 			out <- ob
 		}
 	}
-	return nil
 }
 
 func (r *R) ResolveStatement(s ast.Statement, c *Bindings, out chan<- *Bindings) {

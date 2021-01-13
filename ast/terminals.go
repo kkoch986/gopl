@@ -2,7 +2,6 @@ package ast
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 )
 
@@ -61,7 +60,7 @@ func UnmarshalJSONTerm(b []byte) (Term, error) {
 		err = json.Unmarshal(b, v)
 		return v, err
 	default:
-		return nil, errors.New(fmt.Sprintf("Unknown raw statement type: %s", t))
+		return nil, fmt.Errorf("Unknown raw statement type: %s", t)
 	}
 }
 

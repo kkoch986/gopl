@@ -28,9 +28,7 @@ func BuildStatementList(b bsr.BSR) []Statement {
 		l := BuildStatementList(sl)
 
 		ret := []Statement{}
-		for _, v := range l {
-			ret = append(ret, v)
-		}
+		ret = append(ret, l...)
 
 		// the second part of this might be an arg
 		statementBST := b.GetNTChild(symbols.NT_Statement, 0)
@@ -61,8 +59,6 @@ func BuildStatement(b bsr.BSR) Statement {
 	} else {
 		panic("Unknown Statement Type: " + t)
 	}
-
-	return nil
 }
 
 func BuildRule(b bsr.BSR) *Rule {
@@ -90,9 +86,7 @@ func BuildFactList(b bsr.BSR) []*Fact {
 		l := BuildFactList(sl)
 
 		ret := []*Fact{}
-		for _, v := range l {
-			ret = append(ret, v)
-		}
+		ret = append(ret, l...)
 
 		// the second part of this might be an arg
 		factBST := b.GetNTChild(symbols.NT_Fact, 0)
@@ -123,9 +117,7 @@ func BuildQuery(b bsr.BSR) *Query {
 		cl := BuildQuery(c)
 
 		ret := Query{}
-		for _, v := range *cl {
-			ret = append(ret, v)
-		}
+		ret = append(ret, *cl...)
 
 		// the second part of this might be an arg
 		factBST := b.GetNTChild(symbols.NT_Fact, 0)
@@ -214,7 +206,6 @@ func BuildList(b bsr.BSR) *Fact {
 	} else {
 		panic("Unknown list type: " + t)
 	}
-	return nil
 }
 
 /**
@@ -261,9 +252,7 @@ func BuildArgList(b bsr.BSR) []Term {
 		argList := BuildArgList(al)
 
 		ret := []Term{}
-		for _, v := range argList {
-			ret = append(ret, v)
-		}
+		ret = append(ret, argList...)
 
 		// the second part of this might be an arg
 		argBST := b.GetNTChild(symbols.NT_Arg, 0)

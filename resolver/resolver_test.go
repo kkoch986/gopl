@@ -23,10 +23,10 @@ func TestResolverCases(t *testing.T) {
 		// expect one binding A: a, B: b
 		resolverTestCase{
 			[]ast.Statement{
-				&ast.Fact{"f", []ast.Term{ast.CreateAtom("a"), ast.CreateAtom("b")}}, // f(a,b)
+				&ast.Fact{Head: "f", Args: []ast.Term{ast.CreateAtom("a"), ast.CreateAtom("b")}}, // f(a,b)
 			},
 			&ast.Query{
-				&ast.Fact{"f", []ast.Term{ast.CreateVariable("A"), ast.CreateVariable("B")}}, // f(A,B)
+				&ast.Fact{Head: "f", Args: []ast.Term{ast.CreateVariable("A"), ast.CreateVariable("B")}}, // f(A,B)
 			},
 			EmptyBindings(),
 			[]*Bindings{

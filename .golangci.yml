@@ -1,0 +1,8 @@
+
+
+run:
+    skip-dirs:
+        - lexer/*
+        - parser/*
+        - token/*
+        - goutil/*

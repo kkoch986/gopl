@@ -46,8 +46,3 @@ func (d *Default) indexRule(r *ast.Rule) {
 func (d *Default) StatementsForSignature(s *ast.Signature) []ast.Statement {
 	return d.bySig[s.String()]
 }
-
-func (d *Default) nextAnonymousVariable() string {
-	d.nextVar = d.nextVar + 1
-	return fmt.Sprintf("_h%d", d.nextVar)
-}

@@ -11,7 +11,7 @@ func TestFailPassthrough(t *testing.T) {
 	m := make(chan bool)
 	out := make(chan *Bindings)
 
-	go f.Resolve(&ast.Fact{"something", []ast.Term{}}, EmptyBindings(), out, m)
+	go f.Resolve(&ast.Fact{Head: "something", Args: []ast.Term{}}, EmptyBindings(), out, m)
 
 	select {
 	case o := <-out:
@@ -25,7 +25,7 @@ func TestFailPassthrough(t *testing.T) {
 	// make sure it doesnt match "fail/1"
 	m = make(chan bool)
 	out = make(chan *Bindings)
-	go f.Resolve(&ast.Fact{"fail", []ast.Term{ast.CreateAtom("A")}}, EmptyBindings(), out, m)
+	go f.Resolve(&ast.Fact{Head: "fail", Args: []ast.Term{ast.CreateAtom("A")}}, EmptyBindings(), out, m)
 	select {
 	case o := <-out:
 		t.Errorf("Fail resolver wrote results for fail/1 (got %s)", o)
@@ -45,7 +45,7 @@ func TestFailNoResults(t *testing.T) {
 	m := make(chan bool)
 	out := make(chan *Bindings)
 
-	go f.Resolve(&ast.Fact{"fail", []ast.Term{}}, EmptyBindings(), out, m)
+	go f.Resolve(&ast.Fact{Head: "fail", Args: []ast.Term{}}, EmptyBindings(), out, m)
 
 	select {
 	case o := <-out:

@@ -76,9 +76,7 @@ func (f *Fact) ExtractVariables() []*Variable {
 		t := v.GetType()
 		switch t {
 		case T_Fact:
-			for _, v2 := range v.(*Fact).ExtractVariables() {
-				ret = append(ret, v2)
-			}
+			ret = append(ret, v.(*Fact).ExtractVariables()...)
 		case T_Variable:
 			ret = append(ret, v.(*Variable))
 		}
@@ -141,7 +139,7 @@ func prettyPrintList(a []Term) string {
 	if right.GetType() == T_Fact && right.(*Fact).Head == "|" {
 		rightStr := prettyPrintList(right.(*Fact).Args)
 		if rightStr == "" {
-			return fmt.Sprintf("%s", left)
+			return left.String()
 		}
 		return fmt.Sprintf("%s,%s", left, rightStr)
 	} else {

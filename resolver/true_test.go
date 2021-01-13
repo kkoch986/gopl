@@ -11,7 +11,7 @@ func TestTruePassthrough(t *testing.T) {
 	m := make(chan bool)
 	out := make(chan *Bindings)
 
-	go f.Resolve(&ast.Fact{"something", []ast.Term{}}, EmptyBindings(), out, m)
+	go f.Resolve(&ast.Fact{Head: "something", Args: []ast.Term{}}, EmptyBindings(), out, m)
 
 	select {
 	case o := <-out:
@@ -25,7 +25,7 @@ func TestTruePassthrough(t *testing.T) {
 	// make sure it doesnt match "fail/1"
 	m = make(chan bool)
 	out = make(chan *Bindings)
-	go f.Resolve(&ast.Fact{"true", []ast.Term{ast.CreateAtom("A")}}, EmptyBindings(), out, m)
+	go f.Resolve(&ast.Fact{Head: "true", Args: []ast.Term{ast.CreateAtom("A")}}, EmptyBindings(), out, m)
 	select {
 	case o := <-out:
 		t.Errorf("True resolver wrote results for true/1 (got %s)", o)
@@ -46,7 +46,7 @@ func TestTrueResults(t *testing.T) {
 	out := make(chan *Bindings)
 	inputBindings := EmptyBindings()
 
-	go f.Resolve(&ast.Fact{"true", []ast.Term{}}, inputBindings, out, m)
+	go f.Resolve(&ast.Fact{Head: "true", Args: []ast.Term{}}, inputBindings, out, m)
 
 	foundResults := false
 	select {

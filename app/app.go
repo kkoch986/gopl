@@ -36,7 +36,7 @@ var App = &cli.App{
 				outfile := c.String("outfile")
 
 				if filename == "" {
-					cli.ShowAppHelp(c)
+					_ = cli.ShowAppHelp(c)
 					return errors.New("Filename is required")
 				}
 				fmt.Printf("Compiling %s\n", filename)

@@ -15,7 +15,7 @@ func TestEmpty(t *testing.T) {
 	}
 
 	// set a binding
-	b.Bind("a", &ast.Fact{"a", []ast.Term{}})
+	b.Bind("a", &ast.Fact{Head: "a", Args: []ast.Term{}})
 
 	// not empty anymore
 	if b.Empty() {
@@ -34,7 +34,7 @@ func TestDeref(t *testing.T) {
 		ast.CreateAtom("a"),
 		ast.CreateStringLiteral("b"),
 		ast.CreateNumericLiteral(10),
-		&ast.Fact{"b", []ast.Term{}},
+		&ast.Fact{Head: "b", Args: []ast.Term{}},
 	}
 	for _, base := range bases {
 		v := b.Dereference(base)
