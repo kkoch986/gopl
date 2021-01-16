@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+    "io/ioutil"
 
 	"github.com/urfave/cli/v2"
 
@@ -69,9 +70,18 @@ var App = &cli.App{
 			Name:    "shell",
 			Aliases: []string{"s", ""},
 			Usage:   "Enter the interactive query shell",
-			Flags:   []cli.Flag{},
+			Flags:   []cli.Flag{
+                &cli.BoolFlag{
+                    Name: "verbose",
+                    Aliases: []string{"vv"},
+                    Value: false,
+                },
+            },
 			Action: func(c *cli.Context) error {
 				i := indexer.NewDefault()
+                if !c.Bool("verbose") {
+                    log.SetOutput(ioutil.Discard)
+                }
 				// TODO: let flags define these
 				h, err := NewHistory(os.Getenv("HOME")+"/.gopl_history", 1000)
 
