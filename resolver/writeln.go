@@ -6,7 +6,7 @@ import (
 	"github.com/kkoch986/gopl/ast"
 )
 
-type Writeln struct { }
+type Writeln struct{}
 
 func (w *Writeln) Resolve(fact *ast.Fact, c *Bindings, out chan<- *Bindings, m chan<- bool) {
 	if fact.Signature().String() != "writeln/1" {

@@ -34,7 +34,6 @@ func (b *Bindings) Clone() *Bindings {
 }
 
 func (b *Bindings) Bind(k string, v ast.Term) bool {
-	log.Printf("[BIND] %s -> %s", k, v)
 	if b.B[k] != nil && b.B[k] != v {
 		log.Printf("[BIND] %s -> %s   FAIL (already bound to %s)\n", k, v, b.B[k])
 		return false
@@ -47,9 +46,44 @@ func (b *Bindings) Bind(k string, v ast.Term) bool {
 func (b *Bindings) String() string {
 	ret := "Bindings: \n"
 	for k, v := range b.B {
-		ret = ret + fmt.Sprintf("\t%s: %s\n", k, v)
+		ret = ret + fmt.Sprintf("\t%s: %s\n", k, b.Ground(v))
 	}
 	return ret
+}
+
+/**
+ * Ground is similar to dereference, but it will go deep into nested facts and dereference
+ * all terms it can find.
+ */
+func (b *Bindings) Ground(t ast.Term) ast.Term {
+	termType := t.GetType()
+	switch termType {
+	case ast.T_Fact:
+		f := t.(*ast.Fact)
+		argc := len(f.Args)
+		// in case of a fact, loop over each of the args and ground them
+		newArgs := make([]ast.Term, argc)
+		for i, v := range f.Args {
+			newArgs[i] = b.Ground(v)
+		}
+		return &ast.Fact{Head: f.Head, Args: newArgs}
+	case ast.T_Variable:
+		// when grouding a variable, dont change it if the deref returns a variable.
+		// this prevents accidentally swapping for the wrong variable when resolving facts with rules
+		d := b.Dereference(t)
+		if d.GetType() == ast.T_Variable {
+			return t
+		}
+		return d
+	case ast.T_Atom:
+		fallthrough
+	case ast.T_String:
+		fallthrough
+	case ast.T_Number:
+		fallthrough
+	default:
+		return b.Dereference(t)
+	}
 }
 
 /**

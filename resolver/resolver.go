@@ -107,7 +107,7 @@ func (r *R) ResolveQuery(q *ast.Query, c *Bindings, out chan<- *Bindings) {
 
 func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 	defer close(out)
-	log.Printf("[ResolveFact] %s\n", f)
+	log.Printf("[ResolveFact] %s (as %s)\n", c.Ground(f), f)
 
 	// loop over all the resolvers one at a time until one matches (indicated by closing `out`)
 	rChan := make(chan *Bindings, 1)
@@ -147,18 +147,22 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 			rule := s.(*ast.Rule)
 			// We are trying to unify a Fact (the query) and a Rule (the base)
 			// To unify a fact with a rule, follow this procedure:
-			//    1. create an initial "stack frame" by unifying the query with the head of the base rule
+			//    1. Ground the fact with respect to the current bindings
+			//    1. create an initial "stack frame" by
+			//        unifying the grounded query with the head of the base rule using fresh bindings
 			//    2. With that binding, resolve the body of the rule as if it were a query.
 			//    3. With each resulting binding:
 			//       - extract the variables from the head of the query fact
 			//       - return a new binding which binds each variable from the query fact to its corresponding
 			//         value in the "stack frame" binding.
 			// not sure this comment is enlightening but hopefully it and the code make sense together...
-			initialBinding := unifyFacts(rule.Head, f, c)
+			initialBinding := unifyFacts(rule.Head, c.Ground(f).(*ast.Fact), EmptyBindings())
 
 			if initialBinding == nil {
 				continue
 			}
+
+			variablesToProve := initialBinding.Ground(f).(*ast.Fact).ExtractVariables()
 
 			// set up a channel to receive valid resolutions of the body of the rule
 			discoveredBindings := make(chan *Bindings, 1)
@@ -170,7 +174,7 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 				// if it is bound to a non-variable, add the same binding to a clone of `c` and return that
 				outBinding := c.Clone()
 				valid := true
-				for _, variable := range f.ExtractVariables() {
+				for _, variable := range variablesToProve {
 					deref := db.Dereference(variable)
 					if deref == nil {
 						continue

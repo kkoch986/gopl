@@ -40,9 +40,9 @@ func unifyFacts(base *ast.Fact, query *ast.Fact, b *Bindings) *Bindings {
 
 	// check that each of the args unify, passing the binding from the first arg onto the next one etc..
 	testBindings := b.Clone()
-	for i, b := range base.Args {
+	for i, baseArg := range base.Args {
 		q := query.Args[i]
-		testBindings = unifyTerms(b, q, testBindings)
+		testBindings = unifyTerms(baseArg, q, testBindings)
 
 		if testBindings == nil {
 			return nil

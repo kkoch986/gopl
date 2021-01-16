@@ -54,6 +54,7 @@ for example
 ```
 Fact 
   : Infix 
+  | List
   | atom"()"
   | string_lit"()"
   | atom"(" ArgList ")"
@@ -78,7 +79,6 @@ Arg
   | atom
   | var
   | Fact 
-  | List
   ;
 ```
 # TODO: add support for `is <math expr>`

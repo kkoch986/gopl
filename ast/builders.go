@@ -148,6 +148,11 @@ func BuildFact(b bsr.BSR) *Fact {
 		return &Fact{operator, []Term{lhs, rhs}}
 	}
 
+	// if the alternate is 1, that is a List
+	if b.Alternate() == 1 {
+		return BuildList(b.GetNTChild(symbols.NT_List, 0))
+	}
+
 	// TODO: Error handling?
 	// The first thing should be either an atom or string lit
 	c := b.GetTChildI(0)
