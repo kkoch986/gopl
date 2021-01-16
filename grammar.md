@@ -24,7 +24,7 @@ Statement
 
 Query : "?-" Concatenation ;
 
-Rule : Fact ":-" FactList ;
+Rule : Fact ":-" Concatenation ;
 ```
 
 ## Concatenation

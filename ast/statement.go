@@ -96,7 +96,7 @@ func (q *Query) Tail() *Query {
 
 type Rule struct {
 	Head *Fact
-	Body []*Fact
+	Body *Query
 }
 
 func (r *Rule) GetType() TermType {
@@ -107,19 +107,19 @@ func (r *Rule) Signature() *Signature {
 	return r.Head.Signature()
 }
 
-func (q *Rule) String() string {
+func (r *Rule) String() string {
 	stringList := []string{}
 
-	for _, v := range q.Body {
+	for _, v := range *r.Body {
 		stringList = append(stringList, (v).String())
 	}
 
-	return fmt.Sprintf("%s :- %s", q.Head, strings.Join(stringList, ","))
+	return fmt.Sprintf("%s :- %s", r.Head, strings.Join(stringList, ","))
 }
 
 func (r *Rule) Anonymize(start int) (*Rule, int) {
 	used := 0
-	anonymousBody := []*Fact{}
+	anonymousBody := Query{}
 	existing := make(map[string]string)
 
 	// anonymize the head of the fact and set those bindings
@@ -127,13 +127,13 @@ func (r *Rule) Anonymize(start int) (*Rule, int) {
 	used = used + moreUsed
 
 	// now start anonymizing the body
-	for _, f := range r.Body {
+	for _, f := range *r.Body {
 		af, u := f.Anonymize(start+used, &existing)
 		used = used + u
 		anonymousBody = append(anonymousBody, af)
 	}
 
-	return &Rule{anonymousHead, anonymousBody}, used
+	return &Rule{anonymousHead, &anonymousBody}, used
 }
 
 func (q *Rule) MarshalJSON() ([]byte, error) {

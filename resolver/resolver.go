@@ -166,8 +166,7 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 
 			// set up a channel to receive valid resolutions of the body of the rule
 			discoveredBindings := make(chan *Bindings, 1)
-			q := ast.Query(rule.Body)
-			go r.ResolveStatementList([]ast.Statement{&q}, initialBinding, discoveredBindings)
+			go r.ResolveStatementList([]ast.Statement{rule.Body}, initialBinding, discoveredBindings)
 			for db := range discoveredBindings {
 				// find all of the variables defined by the head of the rule
 				// lookup their values in the discovered binding

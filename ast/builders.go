@@ -67,8 +67,8 @@ func BuildRule(b bsr.BSR) *Rule {
 		panic("Unable to construct rule head")
 	}
 
-	bodybsr := b.GetNTChild(symbols.NT_FactList, 0)
-	body := BuildFactList(bodybsr)
+	bodybsr := b.GetNTChild(symbols.NT_Concatenation, 0)
+	body := BuildQuery(bodybsr)
 
 	return &Rule{head, body}
 }
