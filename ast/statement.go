@@ -16,6 +16,8 @@ const (
 	T_Atom
 	T_String
 	T_Number
+	T_MathExpr
+	T_MathAssignment
 )
 
 func (s TermType) String() string {
@@ -29,7 +31,9 @@ type Statement interface {
 	String() string
 }
 
-type Query []*Fact
+// TODO: converting query to a statement list for now, should wrap this in some protection
+//        to ensure it only ever contains Fact or MathAssignements.
+type Query []Statement
 
 func (q *Query) String() string {
 	stringList := []string{}
@@ -82,7 +86,7 @@ func (q *Query) Empty() bool {
 	return len(*q) == 0
 }
 
-func (q *Query) Head() *Fact {
+func (q *Query) Head() Statement {
 	if q.Empty() {
 		return nil
 	}
@@ -128,7 +132,8 @@ func (r *Rule) Anonymize(start int) (*Rule, int) {
 
 	// now start anonymizing the body
 	for _, f := range *r.Body {
-		af, u := f.Anonymize(start+used, &existing)
+		/// TODO: handle this for mathassignments
+		af, u := f.(*Fact).Anonymize(start+used, &existing)
 		used = used + u
 		anonymousBody = append(anonymousBody, af)
 	}

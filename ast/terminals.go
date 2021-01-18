@@ -190,6 +190,10 @@ func (v *NumericLiteral) GetType() TermType {
 	return T_Number
 }
 
+func (v *NumericLiteral) Value() float64 {
+	return v.float64
+}
+
 func (v *NumericLiteral) String() string {
 	return fmt.Sprintf("%f", v.float64)
 }

@@ -35,7 +35,9 @@ This indicates the `AND` operation is being applied to each.
 ```
 Concatenation 
   : Concatenation "," Fact
+  | Concatenation "," MathAssignment
   | Fact
+  | MathAssignment
   ;
 ```
 
@@ -115,5 +117,23 @@ num_lit : ['-'] number {number} ['.' {number}] ;
 infix_operator : '=';
 ```
 
+## Math Expressions
 
+```
+Factor
+  : num_lit
+  | var
+  | "(" MathExpr ")" ;
 
+Mult
+  : Factor "*" Factor
+  | Factor "/" Factor
+  | Factor ;
+
+MathExpr
+  : Mult "+" Mult
+  | Mult "-" Mult
+  | Mult ;
+
+MathAssignment
+  : var "is" MathExpr ;

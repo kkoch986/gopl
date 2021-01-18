@@ -8,7 +8,6 @@ import (
 	"github.com/kkoch986/gopl/parser/bsr"
 	"github.com/kkoch986/gopl/parser/symbols"
 	"github.com/kkoch986/gopl/token"
-	// "github.com/kkoch986/gopl/parser/slot"
 )
 
 // TODO: Error handling across the board
@@ -119,20 +118,90 @@ func BuildQuery(b bsr.BSR) *Query {
 		ret := Query{}
 		ret = append(ret, *cl...)
 
-		// the second part of this might be an arg
-		factBST := b.GetNTChild(symbols.NT_Fact, 0)
-		fact := BuildFact(factBST)
-
-		if fact == nil {
-			panic("Unable to parse fact")
+		// the second part of this should be a fact or math assignment
+		if b.Alternate() == 0 {
+			factBST := b.GetNTChild(symbols.NT_Fact, 0)
+			fact := BuildFact(factBST)
+			if fact == nil {
+				panic("Unable to parse fact")
+			}
+			ret = append(ret, fact)
+		} else if b.Alternate() == 1 {
+			maBST := b.GetNTChild(symbols.NT_MathAssignment, 0)
+			ma := BuildMathAssignment(maBST)
+			if ma == nil {
+				panic("Unable to parse Math Assignment")
+			}
+			ret = append(ret, ma)
 		}
-
-		ret = append(ret, fact)
 		return &ret
+	} else if t == "MathAssignment" {
+		me := BuildMathAssignment(c)
+		if me != nil {
+			return &Query{me}
+		}
 	} else {
 		panic("Unknown type found in Query: " + t)
 	}
 	return &Query{}
+}
+
+func BuildMathAssignment(b bsr.BSR) *MathAssignment {
+	v := string(b.GetTChildI(0).Literal())
+	e := b.GetNTChild(symbols.NT_MathExpr, 0)
+	me := BuildMathExpr(e)
+	return &MathAssignment{CreateVariable(v), me}
+}
+
+func BuildMathExpr(b bsr.BSR) *MathExpr {
+	lhs := BuildMult(b.GetNTChild(symbols.NT_Mult, 0))
+	// if we are in the last alternate, dont expect any operator
+	if b.Alternate() == 2 {
+		return &MathExpr{LHS: lhs, Operator: OP_MathExprNoOp, RHS: nil}
+	}
+	rhs := BuildMult(b.GetNTChild(symbols.NT_Mult, 1))
+	op := string(b.GetTChildI(1).Literal())
+	if op == "+" {
+		return &MathExpr{LHS: lhs, Operator: OP_Add, RHS: rhs}
+	} else if op == "-" {
+		return &MathExpr{LHS: lhs, Operator: OP_Subtract, RHS: rhs}
+	}
+	panic(fmt.Sprintf("Unknown MathExpr op %s", op))
+}
+
+func BuildMult(b bsr.BSR) *Mult {
+	lhs := BuildFactor(b.GetNTChild(symbols.NT_Factor, 0))
+	// if we are in the last alternate, dont expect any operator
+	if b.Alternate() == 2 {
+		return &Mult{LHS: lhs, Operator: OP_MultNoOp, RHS: nil}
+	}
+	rhs := BuildFactor(b.GetNTChild(symbols.NT_Factor, 1))
+	op := string(b.GetTChildI(1).Literal())
+	if op == "*" {
+		return &Mult{LHS: lhs, Operator: OP_Mult, RHS: rhs}
+	} else if op == "/" {
+		return &Mult{LHS: lhs, Operator: OP_Divide, RHS: rhs}
+	}
+	panic(fmt.Sprintf("Unknown Mult op %s", op))
+}
+
+func BuildFactor(b bsr.BSR) *Factor {
+	// get the first terminal character
+	s := b.GetTChildI(0)
+	t := s.Type().ID()
+
+	if t == "num_lit" {
+		fVal := BuildNumericLiteral(s)
+		return &Factor{nil, fVal, nil}
+	} else if t == "var" {
+		vVal := BuildVariable(s)
+		return &Factor{vVal, nil, nil}
+	} else if t == "(" {
+		me := b.GetNTChild(symbols.NT_MathExpr, 0)
+		mVal := BuildMathExpr(me)
+		return &Factor{nil, nil, mVal}
+	}
+	panic(fmt.Sprintf("Unknown factor first terminal: %s", t))
 }
 
 func BuildFact(b bsr.BSR) *Fact {
