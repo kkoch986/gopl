@@ -18,6 +18,8 @@ const (
 	T_Number
 	T_MathExpr
 	T_MathAssignment
+	T_Mult
+	T_Factor
 )
 
 func (s TermType) String() string {
@@ -62,23 +64,37 @@ func (q *Query) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-
 	// parse the args
 	var rmArgs []json.RawMessage
 	err = json.Unmarshal(rm["b"], &rmArgs)
 	if err != nil {
 		return err
 	}
-
 	for _, v := range rmArgs {
-		f := &Fact{}
-		err = json.Unmarshal(v, f)
+		// parse into a map first and check the type
+		// we might expect either a fact or a MathAssignment
+		temp := make(map[string]json.RawMessage)
+		err = json.Unmarshal(v, &temp)
 		if err != nil {
 			return err
 		}
-		*q = append(*q, f)
+		t := string(temp["t"])
+		if t == "ma" {
+			ma := &MathAssignment{}
+			err = json.Unmarshal(v, ma)
+			if err != nil {
+				return err
+			}
+			*q = append(*q, ma)
+		} else if t == "fact" {
+			f := &Fact{}
+			err = json.Unmarshal(v, f)
+			if err != nil {
+				return err
+			}
+			*q = append(*q, f)
+		}
 	}
-
 	return nil
 }
 
@@ -161,8 +177,7 @@ func (r *Rule) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-
-	// TODO: unmarshal the body
+	// unmarshal the body
 	err = json.Unmarshal(rm["b"], &r.Body)
 	if err != nil {
 		return err

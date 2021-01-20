@@ -28,7 +28,6 @@ func UnmarshalJSONTerm(b []byte) (Term, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	// based on the type, populate S with the correct statement type
 	switch t {
 	case "var":
@@ -57,6 +56,22 @@ func UnmarshalJSONTerm(b []byte) (Term, error) {
 		return v, err
 	case "num":
 		v := &NumericLiteral{}
+		err = json.Unmarshal(b, v)
+		return v, err
+	case "ma":
+		v := &MathAssignment{}
+		err = json.Unmarshal(b, v)
+		return v, err
+	case "me":
+		v := &MathExpr{}
+		err = json.Unmarshal(b, v)
+		return v, err
+	case "mu":
+		v := &Mult{}
+		err = json.Unmarshal(b, v)
+		return v, err
+	case "mf":
+		v := &Factor{}
 		err = json.Unmarshal(b, v)
 		return v, err
 	default:

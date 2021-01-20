@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -43,6 +44,59 @@ func (f *Factor) String() string {
 	}
 }
 
+func (f *Factor) GetType() TermType {
+	return T_Factor
+}
+
+func (f *Factor) MarshalJSON() ([]byte, error) {
+	m := make(map[string]interface{})
+	m["t"] = "mf"
+	if f.Var != nil {
+		m["v"] = f.Var
+	} else if f.Num != nil {
+		m["n"] = f.Num
+	} else if f.Expr != nil {
+		m["e"] = f.Expr
+	}
+	return json.Marshal(m)
+}
+
+func (f *Factor) UnmarshalJSON(b []byte) error {
+	rm := make(map[string]json.RawMessage)
+	var v *Variable
+	var n *NumericLiteral
+	var e *MathExpr
+	var val json.RawMessage
+	var ok bool
+
+	err := json.Unmarshal(b, &rm)
+	if err != nil {
+		return err
+	}
+
+	if val, ok = rm["v"]; ok {
+		err = json.Unmarshal(val, v)
+		if err != nil {
+			return err
+		}
+		f.Var = v
+	} else if val, ok = rm["n"]; ok {
+		err = json.Unmarshal(val, n)
+		if err != nil {
+			return err
+		}
+		f.Num = n
+	} else if val, ok = rm["e"]; ok {
+		err = json.Unmarshal(val, e)
+		if err != nil {
+			return err
+		}
+		f.Expr = e
+	}
+
+	return nil
+}
+
 type MultOperator int
 
 const (
@@ -74,6 +128,53 @@ func (m *Mult) String() string {
 	default:
 		return fmt.Sprintf("Unknown Mult operation: %s", m.Operator)
 	}
+}
+
+func (m *Mult) GetType() TermType {
+	return T_Mult
+}
+
+func (me *Mult) MarshalJSON() ([]byte, error) {
+	m := make(map[string]interface{})
+	m["t"] = "mu"
+	m["l"] = me.LHS
+	if me.RHS != nil {
+		m["r"] = me.RHS
+	}
+	m["o"] = me.Operator
+	return json.Marshal(m)
+}
+
+func (mu *Mult) UnmarshalJSON(b []byte) error {
+	rm := make(map[string]json.RawMessage)
+	var lhs, rhs Factor
+	var op MultOperator
+
+	err := json.Unmarshal(b, &rm)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(rm["l"], &lhs)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(rm["r"], &rhs)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(rm["o"], &op)
+	if err != nil {
+		return err
+	}
+
+	// put it all back together
+	mu.LHS = &lhs
+	mu.RHS = &rhs
+	mu.Operator = op
+
+	return nil
 }
 
 type MathExprOperator int
@@ -115,6 +216,49 @@ func (m *MathExpr) Anonymize(bindings *map[string]string, start int) (*MathExpr,
 	return &MathExpr{lhs, m.Operator, rhs}, (used + rused)
 }
 
+func (me *MathExpr) MarshalJSON() ([]byte, error) {
+	m := make(map[string]interface{})
+	m["t"] = "me"
+	m["l"] = me.LHS
+	if me.RHS != nil {
+		m["r"] = me.RHS
+	}
+	m["o"] = me.Operator
+	return json.Marshal(m)
+}
+
+func (me *MathExpr) UnmarshalJSON(b []byte) error {
+	rm := make(map[string]json.RawMessage)
+	var lhs, rhs Mult
+	var op MathExprOperator
+
+	err := json.Unmarshal(b, &rm)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(rm["l"], &lhs)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(rm["r"], &rhs)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(rm["o"], &op)
+	if err != nil {
+		return err
+	}
+
+	// put it all back together
+	me.LHS = &lhs
+	me.RHS = &rhs
+	me.Operator = op
+
+	return nil
+}
+
 type MathAssignment struct {
 	LHS *Variable
 	RHS *MathExpr
@@ -134,4 +278,39 @@ func (m *MathAssignment) Anonymize(start int) (*MathAssignment, int) {
 	bindings[m.LHS.String()] = lhsVar
 	rhs, count := m.RHS.Anonymize(&bindings, start+1)
 	return &MathAssignment{CreateVariable(lhsVar), rhs}, (count + 1)
+}
+
+func (ma *MathAssignment) MarshalJSON() ([]byte, error) {
+	m := make(map[string]interface{})
+	m["t"] = "ma"
+	m["v"] = ma.LHS
+	m["e"] = ma.RHS
+	return json.Marshal(m)
+}
+
+func (ma *MathAssignment) UnmarshalJSON(b []byte) error {
+	fmt.Println("UNMARSHAL MATHASSIGN")
+	rm := make(map[string]json.RawMessage)
+	var v Variable
+	var rhs MathExpr
+
+	err := json.Unmarshal(b, &rm)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(rm["v"], &v)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(rm["e"], &rhs)
+	if err != nil {
+		return err
+	}
+
+	// put it all back together
+	ma.LHS = &v
+	ma.RHS = &rhs
+
+	return nil
 }

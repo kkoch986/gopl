@@ -2,7 +2,6 @@
 golang prolog
 
 ## TODO:
-- math expressions
 - more testing
 - better error handling
 - linting
