@@ -126,7 +126,7 @@ func (m *Mult) String() string {
 	case OP_Divide:
 		return fmt.Sprintf("(%s / %s)", m.LHS.String(), m.RHS.String())
 	default:
-		return fmt.Sprintf("Unknown Mult operation: %s", m.Operator)
+		return fmt.Sprintf("Unknown Mult operation: %v", m.Operator)
 	}
 }
 
@@ -204,7 +204,7 @@ func (m *MathExpr) String() string {
 	case OP_Add:
 		return fmt.Sprintf("(%s + %s)", m.LHS.String(), m.RHS.String())
 	default:
-		return fmt.Sprintf("Unknown MathExpr operation: %s", m.Operator)
+		return fmt.Sprintf("Unknown MathExpr operation: %v", m.Operator)
 	}
 }
 

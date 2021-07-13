@@ -98,6 +98,14 @@ func (q *Query) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func CreateRule(h *Fact, q ...Statement) *Rule {
+	query := Query(q)
+	return &Rule{
+		h,
+		&query,
+	}
+}
+
 func (q *Query) Empty() bool {
 	return len(*q) == 0
 }

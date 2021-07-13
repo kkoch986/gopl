@@ -1,7 +1,8 @@
-package resolver
+package resolver_test
 
 import "testing"
 import "github.com/kkoch986/gopl/ast"
+import "github.com/kkoch986/gopl/resolver"
 
 /**
  * TestEmpty will test that the empty function returns true when there is nothing bound
@@ -9,7 +10,7 @@ import "github.com/kkoch986/gopl/ast"
  */
 func TestEmpty(t *testing.T) {
 	// a new binding should be empty
-	b := EmptyBindings()
+	b := resolver.EmptyBindings()
 	if !b.Empty() {
 		t.Errorf("New binding is not empty")
 	}
@@ -27,7 +28,7 @@ func TestEmpty(t *testing.T) {
  * TestDeref will test various cases of bindings and dereferences
  */
 func TestDeref(t *testing.T) {
-	b := EmptyBindings()
+	b := resolver.EmptyBindings()
 
 	// dereferencing something that is not a variable should just return that thing
 	var bases = []ast.Term{
@@ -88,7 +89,7 @@ func TestDeref(t *testing.T) {
  * TestClone will test that a cloned binding does not affect the original object
  */
 func TestClone(t *testing.T) {
-	b := EmptyBindings()
+	b := resolver.EmptyBindings()
 
 	// bind some variables
 	b.Bind("a", ast.CreateVariable("A"))
@@ -136,5 +137,51 @@ func TestClone(t *testing.T) {
 	if v.(*ast.Variable).String() != "C" {
 		t.Errorf("cloned binding failed deref. Expected %s, got %s", "C", v)
 	}
+}
 
+/**
+ * TestEquals will test various cases of equality testing between 2 bindings
+ **/
+func TestEquals(t *testing.T) {
+	// Test empty == empty
+	if !resolver.EmptyBindings().Equals(resolver.EmptyBindings()) {
+		t.Errorf("Empty bindings !== empty bindings")
+	}
+
+	// Test 2 equal bindings
+	b1 := resolver.CreateBindings(map[string]ast.Term{
+		"A": ast.CreateAtom("a"),
+		"B": ast.CreateAtom("b"),
+	})
+	b2 := resolver.CreateBindings(map[string]ast.Term{
+		"A": ast.CreateAtom("a"),
+		"B": ast.CreateAtom("b"),
+	})
+	if !b1.Equals(b2) {
+		t.Errorf("failed asserting that \n%v equals \n%v", b1, b2)
+	}
+
+	// Test 2 not-equal bindings with the same values but different keys
+	b1 = resolver.CreateBindings(map[string]ast.Term{
+		"A": ast.CreateAtom("a"),
+	})
+	b2 = resolver.CreateBindings(map[string]ast.Term{
+		"B": ast.CreateAtom("a"),
+	})
+	if b1.Equals(b2) {
+		t.Errorf("incorrectly asserted that \n%v equals \n%v", b1, b2)
+	}
+
+	// Test 2 not-equal bindings with the same number keys but different values
+	b1 = resolver.CreateBindings(map[string]ast.Term{
+		"A": ast.CreateAtom("a"),
+	})
+	b2 = resolver.CreateBindings(map[string]ast.Term{
+		"A": ast.CreateAtom("b"),
+	})
+	if b1.Equals(b2) {
+		t.Errorf("incorrectly asserted that\n %v equals \n%v", b1, b2)
+	}
+
+	// TODO: test complex types
 }

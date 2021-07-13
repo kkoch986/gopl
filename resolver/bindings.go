@@ -25,6 +25,32 @@ func (b *Bindings) Empty() bool {
 	return len(b.B) == 0
 }
 
+func (b *Bindings) Equals(c *Bindings) bool {
+	// quick length check
+	if len(b.B) != len(c.B) {
+		return false
+	}
+
+	// go key by key from b and make sure it exists and matches
+	for key, bv := range b.B {
+		cv := c.B[key]
+		if cv == nil {
+			return false
+		}
+
+		if bv.GetType() != cv.GetType() {
+			return false
+		}
+
+		// TODO: theres probably a better way to do this...
+		if bv.String() != cv.String() {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (b *Bindings) Clone() *Bindings {
 	newMap := make(map[string]ast.Term)
 	for i, v := range b.B {
@@ -48,6 +74,15 @@ func (b *Bindings) String() string {
 	for k, v := range b.B {
 		ret = ret + fmt.Sprintf("\t%s: %s\n", k, b.Ground(v))
 	}
+	return ret
+}
+
+func (b *Bindings) ShortString() string {
+	ret := "{"
+	for k, v := range b.B {
+		ret = ret + fmt.Sprintf("%s: %s, ", k, b.Ground(v))
+	}
+	ret = ret + "}"
 	return ret
 }
 

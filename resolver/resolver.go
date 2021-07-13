@@ -84,14 +84,14 @@ func (r *R) ResolveStatement(s ast.Statement, c *Bindings, out chan<- *Bindings)
 	case ast.T_Fact:
 		fallthrough
 	default:
-		fmt.Println("how to resolve?", t)
+		log.Printf("[WARN] Unknown resolution input type: %v", s)
 		close(out)
 	}
 }
 
 func (r *R) ResolveQuery(q *ast.Query, c *Bindings, out chan<- *Bindings) {
 	defer close(out)
-	log.Printf("[ResolveQuery] %s", q)
+	log.Printf("[DEBUG][ResolveQuery] %s", q)
 
 	// If there are no statements in the list, accept the current binding
 	if q.Empty() {

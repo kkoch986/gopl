@@ -20,6 +20,10 @@ type Fact struct {
 	Args []Term `json:"a"`
 }
 
+func CreateFact(h string, a ...Term) *Fact {
+	return &Fact{Head: h, Args: a}
+}
+
 func (f *Fact) GetType() TermType {
 	return T_Fact
 }
