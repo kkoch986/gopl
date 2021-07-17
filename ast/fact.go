@@ -28,7 +28,7 @@ func (f *Fact) GetType() TermType {
 	return T_Fact
 }
 
-func (f *Fact) Anonymize(start int, existing *map[string]string) (*Fact, int) {
+func (f *Fact) Anonymize(start int, prefix string, existing *map[string]string) (*Fact, int) {
 	used := 0
 	anonymousBody := []Term{}
 	for _, v := range f.Args {
@@ -38,13 +38,13 @@ func (f *Fact) Anonymize(start int, existing *map[string]string) (*Fact, int) {
 			if (*existing)[v.String()] != "" {
 				anonymousBody = append(anonymousBody, &Variable{(*existing)[v.String()]})
 			} else {
-				newVal := fmt.Sprintf("_h%d", start+used)
+				newVal := fmt.Sprintf("%s%d", prefix, start+used)
 				anonymousBody = append(anonymousBody, &Variable{newVal})
 				(*existing)[v.String()] = newVal
 				used = used + 1
 			}
 		case T_Fact:
-			af, u := v.(*Fact).Anonymize(start+used, existing)
+			af, u := v.(*Fact).Anonymize(start+used, prefix, existing)
 			used = used + u
 			anonymousBody = append(anonymousBody, af)
 		default:

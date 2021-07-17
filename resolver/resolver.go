@@ -9,6 +9,8 @@ import (
 	"github.com/kkoch986/gopl/indexer"
 )
 
+const paralellism = 0
+
 var (
 	ErrUnboundVariable    = errors.New("Unbound variable in MathExpr")
 	ErrNonNumericVariable = errors.New("Non-numeric variable assignment in MathExpr")
@@ -22,8 +24,9 @@ type FactResolver interface {
 }
 
 type R struct {
-	fr []FactResolver
-	i  indexer.Indexer
+	fr      []FactResolver
+	i       indexer.Indexer
+	nextVar int
 }
 
 func (r *R) AddFactResolver(nr FactResolver) {
@@ -58,13 +61,13 @@ func (r *R) ResolveStatementList(sl []ast.Statement, c *Bindings, out chan<- *Bi
 	}
 
 	// find all the bindings for the first statement
-	headBindings := make(chan *Bindings, 1)
+	headBindings := make(chan *Bindings, paralellism)
 	tail := sl[1:]
 
 	go r.ResolveStatement(sl[0], c, headBindings)
 	for hb := range headBindings {
 		// for each binding of the first element of the list, try to resolve the next
-		tailBindings := make(chan *Bindings, 1)
+		tailBindings := make(chan *Bindings, paralellism)
 		go r.ResolveStatementList(tail, hb, tailBindings)
 		for ob := range tailBindings {
 			out <- ob
@@ -74,7 +77,7 @@ func (r *R) ResolveStatementList(sl []ast.Statement, c *Bindings, out chan<- *Bi
 
 func (r *R) ResolveStatement(s ast.Statement, c *Bindings, out chan<- *Bindings) {
 	t := s.GetType()
-	log.Printf("[ResolveStatement] %s (%s)", s, t)
+	log.Printf("[DEBUG][ResolveStatement] %s (%s)", s, t)
 
 	switch t {
 	case ast.T_Query:
@@ -100,7 +103,7 @@ func (r *R) ResolveQuery(q *ast.Query, c *Bindings, out chan<- *Bindings) {
 	}
 
 	// A query is an array of facts, recursively loop over each to DFS all possible bindings
-	headBindings := make(chan *Bindings, 1)
+	headBindings := make(chan *Bindings, paralellism)
 	tail := q.Tail()
 	headType := q.Head().GetType()
 	if headType == ast.T_Fact {
@@ -114,7 +117,7 @@ func (r *R) ResolveQuery(q *ast.Query, c *Bindings, out chan<- *Bindings) {
 
 	for hb := range headBindings {
 		// find all resolutions of the tail and run them back to out
-		tailBindings := make(chan *Bindings, 1)
+		tailBindings := make(chan *Bindings, paralellism)
 		go r.ResolveQuery(tail, hb, tailBindings)
 		for ob := range tailBindings {
 			out <- ob
@@ -124,7 +127,7 @@ func (r *R) ResolveQuery(q *ast.Query, c *Bindings, out chan<- *Bindings) {
 
 func (r *R) ResolveMathAssignment(ma *ast.MathAssignment, c *Bindings, out chan<- *Bindings) {
 	defer close(out)
-	log.Printf("[ResolveMathAssignment] %s", ma)
+	log.Printf("[DEBUG][ResolveMathAssignment] %s", ma)
 
 	// check the variable on the LHS
 	//  if its bound, we should fail
@@ -140,7 +143,7 @@ func (r *R) ResolveMathAssignment(ma *ast.MathAssignment, c *Bindings, out chan<
 
 	// if there were issues resolving, just fail
 	if err != nil {
-		log.Printf("[ResolveMathExpr] Failed; %s", err)
+		log.Printf("[DEBUG][ResolveMathExpr] Failed; %s", err)
 		return
 	}
 
@@ -229,11 +232,12 @@ func (r *R) ResolveFactor(f *ast.Factor, c *Bindings) (float64, error) {
 
 func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 	defer close(out)
-	log.Printf("[ResolveFact] %s (as %s)\n", c.Ground(f), f)
+	groundedF := c.Ground(f)
+	log.Printf("[DEBUG][ResolveFact] %s (from %s)\n", groundedF, f)
 
-	// loop over all the resolvers one at a time until one matches (indicated by closing `out`)
-	rChan := make(chan *Bindings, 1)
-	mChan := make(chan bool, 1)
+	// loop over all the resolvers one at a time until one matches (indicated by writing true on `mChan`)
+	rChan := make(chan *Bindings, paralellism)
+	mChan := make(chan bool, paralellism)
 	for _, resolver := range r.fr {
 		go resolver.Resolve(f, c, rChan, mChan)
 	ResultLoop:
@@ -256,6 +260,8 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 	// If we didnt find a matching resolver, follow the default behavior
 	// Find all of the statements that match the signature
 	matching := r.i.StatementsForSignature(f.Signature())
+	log.Printf("[DEBUG][ResolveFact][%s][%s] Matching statements: %v", groundedF, c.ShortString(), matching)
+
 	// attempt to unify the input fact with each of the matching statements
 	// return each one that does unify as a result binding
 	for _, s := range matching {
@@ -263,36 +269,42 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 		if t == ast.T_Fact {
 			newBinding := unifyFacts(s.(*ast.Fact), f, c)
 			if newBinding != nil {
+				log.Printf("[DEBUG][ResolveFact][%s][%s] Returning fact binding: %s", groundedF, c.ShortString(), newBinding.ShortString())
 				out <- newBinding
 			}
 		} else if t == ast.T_Rule {
 			rule := s.(*ast.Rule)
+			log.Printf("[DEBUG][ResolveFact][%s][%s] Attempting to unify with: %s", groundedF, c.ShortString(), rule)
+
 			// We are trying to unify a Fact (the query) and a Rule (the base)
 			// To unify a fact with a rule, follow this procedure:
-			//    1. Ground the fact with respect to the current bindings
-			//    1. create an initial "stack frame" by
-			//        unifying the grounded query with the head of the base rule using fresh bindings
-			//    2. With that binding, resolve the body of the rule as if it were a query.
-			//    3. With each resulting binding:
-			//       - extract the variables from the head of the query fact
-			//       - return a new binding which binds each variable from the query fact to its corresponding
-			//         value in the "stack frame" binding.
-			// not sure this comment is enlightening but hopefully it and the code make sense together...
-			initialBinding := unifyFacts(rule.Head, c.Ground(f).(*ast.Fact), EmptyBindings())
+			//	  1. Ground the fact we are resolving based on the current bindings
+			//    2. create an initial "stack frame" by anonymizing the variables in the rule
+			//        then unifying that rules head to the fact we are resolvaing using clean bindings.
+			//    3. With that binding, resolve the rule body
+			//    4. For each resulting binding:
+			//       Ground each variable in the
+			//       TODO: document this part, find the variables bound that map to the original head
+			//              and try to unify those against the current binding.
+			// TODO: we need to get the mapped variables back somehow...
+			ar, ruleMappings, j := rule.Anonymize(r.nextVar, "_sf")
+			r.nextVar = r.nextVar + j
+			log.Printf("[DEBUG][ResolveFact][%s][%s] Anonymized rule: %v ( mappings: %v )", groundedF, c.ShortString(), ar, ruleMappings)
+			initialBinding := unifyFacts(ar.Head, groundedF.(*ast.Fact), EmptyBindings())
+			log.Printf("[DEBUG][ResolveFact][%s][%s] Initial Bindings: %v", groundedF, c.ShortString(), initialBinding.ShortString())
 
 			if initialBinding == nil {
+				log.Printf("[DEBUG][ResolveFact][%s][%s] Unable to unify with rule head", groundedF, c.ShortString())
 				continue
 			}
 
-			variablesToProve := initialBinding.Ground(f).(*ast.Fact).ExtractVariables()
-
-			// set up a channel to receive valid resolutions of the body of the rule
-			discoveredBindings := make(chan *Bindings, 1)
-			go r.ResolveStatementList([]ast.Statement{rule.Body}, initialBinding, discoveredBindings)
+			discoveredBindings := make(chan *Bindings, paralellism)
+			variablesToProve := initialBinding.Ground(groundedF).(*ast.Fact).ExtractVariables()
+			go r.ResolveStatementList([]ast.Statement{ar.Body}, initialBinding, discoveredBindings)
+			log.Printf("[DEBUG][ResolveFact][%s][%s] variables to prove: %v", groundedF, c.ShortString(), variablesToProve)
 			for db := range discoveredBindings {
-				// find all of the variables defined by the head of the rule
-				// lookup their values in the discovered binding
-				// if it is bound to a non-variable, add the same binding to a clone of `c` and return that
+				log.Printf("[DEBUG][ResolveFact][%s][%s] Discovered binding: %s", groundedF, c.ShortString(), db.ShortString())
+
 				outBinding := c.Clone()
 				valid := true
 				for _, variable := range variablesToProve {
@@ -305,16 +317,18 @@ func (r *R) ResolveFact(f *ast.Fact, c *Bindings, out chan<- *Bindings) {
 					if derefType != ast.T_Variable {
 						if !outBinding.Bind(variable.String(), deref) {
 							valid = false
-							continue
+							break
 						}
 					}
 				}
+
 				if valid {
 					out <- outBinding
+					log.Printf("[DEBUG][ResolveFact][%s][%s] Returning rule binding: %s", groundedF, c.ShortString(), db.ShortString())
 				}
 			}
 		} else {
-			fmt.Println("TODO: other types of fact unification")
+			log.Printf("[WARN][ResolveFact] Unknown type of unification encountered")
 		}
 	}
 }

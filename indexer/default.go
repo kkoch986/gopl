@@ -31,13 +31,13 @@ func (d *Default) IndexStatement(s ast.Statement) {
 // TODO: if indexing is happening in go routines, we need a mutex on nextVar
 func (d *Default) indexFact(f *ast.Fact) {
 	mappings := make(map[string]string)
-	af, used := f.Anonymize(d.nextVar, &mappings)
+	af, used := f.Anonymize(d.nextVar, "_h", &mappings)
 	d.nextVar += used
 	d.bySig[f.Signature().String()] = append(d.bySig[f.Signature().String()], af)
 }
 
 func (d *Default) indexRule(r *ast.Rule) {
-	ar, used := r.Anonymize(d.nextVar)
+	ar, _, used := r.Anonymize(d.nextVar, "_h")
 	d.nextVar += used
 	fmt.Println(ar)
 	d.bySig[r.Signature().String()] = append(d.bySig[r.Signature().String()], ar)

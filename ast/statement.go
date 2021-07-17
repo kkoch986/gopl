@@ -145,24 +145,24 @@ func (r *Rule) String() string {
 	return fmt.Sprintf("%s :- %s", r.Head, strings.Join(stringList, ","))
 }
 
-func (r *Rule) Anonymize(start int) (*Rule, int) {
+func (r *Rule) Anonymize(start int, prefix string) (*Rule, map[string]string, int) {
 	used := 0
 	anonymousBody := Query{}
 	existing := make(map[string]string)
 
 	// anonymize the head of the fact and set those bindings
-	anonymousHead, moreUsed := r.Head.Anonymize(start+used, &existing)
+	anonymousHead, moreUsed := r.Head.Anonymize(start+used, prefix, &existing)
 	used = used + moreUsed
 
 	// now start anonymizing the body
 	for _, f := range *r.Body {
 		/// TODO: handle this for mathassignments
-		af, u := f.(*Fact).Anonymize(start+used, &existing)
+		af, u := f.(*Fact).Anonymize(start+used, prefix, &existing)
 		used = used + u
 		anonymousBody = append(anonymousBody, af)
 	}
 
-	return &Rule{anonymousHead, &anonymousBody}, used
+	return &Rule{anonymousHead, &anonymousBody}, existing, used
 }
 
 func (q *Rule) MarshalJSON() ([]byte, error) {

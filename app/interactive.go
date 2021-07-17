@@ -8,6 +8,7 @@ import (
 	"log"
 
 	"github.com/c-bata/go-prompt"
+	"github.com/urfave/cli/v2"
 
 	"github.com/kkoch986/gopl/ast"
 	"github.com/kkoch986/gopl/indexer"
@@ -80,4 +81,66 @@ func (q *QueryCLI) Run() error {
 	qPrompt.Run()
 
 	return nil
+}
+
+func interactive(c *cli.Context) error {
+	i := indexer.NewDefault()
+	if !c.Bool("verbose") {
+		log.SetOutput(ioutil.Discard)
+	}
+	// TODO: let flags define these
+	h, err := NewHistory(os.Getenv("HOME")+"/.gopl_history", 1000)
+
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+
+	shell := &QueryCLI{
+		I: i,
+		R: resolver.New(i),
+		H: h,
+	}
+	err = shell.Run()
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+	return nil
+
+}
+
+func compile(c *cli.Context) error {
+	filename := c.Args().First()
+	outfile := c.String("outfile")
+
+	if filename == "" {
+		_ = cli.ShowAppHelp(c)
+		return errors.New("Filename is required")
+	}
+	fmt.Printf("Compiling %s\n", filename)
+
+	// Parse the file
+	l := lexer.NewFile(filename)
+	if bsrSet, errs := parser.Parse(l); len(errs) > 0 {
+		log.Fatal(errs)
+		return errors.New("Parser Error")
+	} else {
+		a := ast.BuildStatementList(bsrSet.GetRoot())
+		fmt.Println(a)
+
+		// open the file for writing
+		f, err := os.Create(outfile)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		err = raw.Serialize(a, f)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+
 }

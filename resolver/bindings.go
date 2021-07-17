@@ -3,6 +3,8 @@ package resolver
 import (
 	"fmt"
 	"log"
+	"sort"
+	"strings"
 
 	"github.com/kkoch986/gopl/ast"
 )
@@ -60,29 +62,45 @@ func (b *Bindings) Clone() *Bindings {
 }
 
 func (b *Bindings) Bind(k string, v ast.Term) bool {
-	if b.B[k] != nil && b.B[k] != v {
-		log.Printf("[BIND] %s -> %s   FAIL (already bound to %s)\n", k, v, b.B[k])
-		return false
+	// TODO: when binding, if the variable is already bound, but its bound to a variable we need to handle that differently...
+	target := b.B[k]
+	if target != nil {
+		target = b.Dereference(b.B[k])
 	}
-	log.Printf("[BIND] %s -> %s     SUCCESS", k, v)
+	if target != nil && target.GetType() != ast.T_Variable {
+		if b.B[k] != nil && b.B[k] != v {
+			log.Printf("[DEBUG][BIND] %s -> %s   FAIL (already bound to %s [%s])\n", k, v, b.B[k], b.Dereference(b.B[k]))
+			return false
+		}
+	} else if target != nil {
+		// bind v to a variable bound to another variable
+		return b.Bind(target.String(), v)
+	}
+	log.Printf("[VERBOSE][BIND] %s -> %s     SUCCESS", k, v)
 	b.B[k] = v
 	return true
 }
 
 func (b *Bindings) String() string {
 	ret := "Bindings: \n"
+	s := make([]string, len(b.B))
 	for k, v := range b.B {
-		ret = ret + fmt.Sprintf("\t%s: %s\n", k, b.Ground(v))
+		s = append(s, fmt.Sprintf("\t%s: %s\n", k, b.Ground(v)))
 	}
-	return ret
+	sort.Strings(s)
+	return ret + strings.Join(s, "")
 }
 
 func (b *Bindings) ShortString() string {
-	ret := "{"
+	ret := ""
+	s := make([]string, len(b.B))
+	i := 0
 	for k, v := range b.B {
-		ret = ret + fmt.Sprintf("%s: %s, ", k, b.Ground(v))
+		s[i] = fmt.Sprintf("%s:%s", k, b.Ground(v))
+		i = i + 1
 	}
-	ret = ret + "}"
+	sort.Strings(s)
+	ret = ret + strings.Join(s, ", ")
 	return ret
 }
 

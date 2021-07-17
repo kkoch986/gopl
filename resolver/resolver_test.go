@@ -10,6 +10,7 @@ import (
 )
 
 type resolverTestCase struct {
+	Label              string
 	ExistingStatements []ast.Statement
 	Input              ast.Statement
 	ExistingBindings   *resolver.Bindings
@@ -17,6 +18,7 @@ type resolverTestCase struct {
 }
 
 func runTestCase(t *testing.T, v resolverTestCase) {
+	t.Logf("Starting Test %s", v.Label)
 	// create an indexer and index the original statements
 	i := indexer.NewDefault()
 	for _, s := range v.ExistingStatements {
@@ -34,7 +36,7 @@ func runTestCase(t *testing.T, v resolverTestCase) {
 	}
 
 	if len(results) != len(v.ExpectedBindings) {
-		t.Errorf("Incorrect number of bindings found. expected %s, got %s", v.ExpectedBindings, results)
+		t.Errorf("Incorrect number of bindings found. expected %d, got %d (results: \n%v)", len(v.ExpectedBindings), len(results), results)
 	}
 
 	// verify that all of the bindings in expected bindings are present in results
@@ -60,6 +62,7 @@ func TestResolverCases(t *testing.T) {
 		//   ?- f(A,B).
 		// expect one binding A: a, B: b
 		resolverTestCase{
+			"Basic f(A,B)",
 			[]ast.Statement{
 				ast.CreateFact("f", ast.CreateAtom("a"), ast.CreateAtom("b")), // f(a,b).
 			},
@@ -78,19 +81,23 @@ func TestResolverCases(t *testing.T) {
 		// f(a,b).
 		// f(b,c).
 		// f(c,d).
+		// f(d,e).
 		// fof(A,B) := f(A,C), f(C,B).
 		// ?- fof(A,C).
 		// expect two bindings:
 		//   A: a, B: c
 		//   A: b, B: d
+		//   A: c, B: e
 		resolverTestCase{
+			"Shallow FOF",
 			[]ast.Statement{
 				ast.CreateFact("f", ast.CreateAtom("a"), ast.CreateAtom("b")),
 				ast.CreateFact("f", ast.CreateAtom("b"), ast.CreateAtom("c")),
 				ast.CreateFact("f", ast.CreateAtom("c"), ast.CreateAtom("d")),
+				ast.CreateFact("f", ast.CreateAtom("d"), ast.CreateAtom("e")),
 				ast.CreateRule(
 					ast.CreateFact("fof", ast.CreateVariable("A"), ast.CreateVariable("B")),
-					// := 
+					// :=
 					ast.CreateFact("f", ast.CreateVariable("A"), ast.CreateVariable("C")),
 					ast.CreateFact("f", ast.CreateVariable("C"), ast.CreateVariable("B")),
 				),
@@ -108,6 +115,62 @@ func TestResolverCases(t *testing.T) {
 					"A": ast.CreateAtom("b"),
 					"B": ast.CreateAtom("d"),
 				}),
+				resolver.CreateBindings(map[string]ast.Term{
+					"A": ast.CreateAtom("c"),
+					"B": ast.CreateAtom("e"),
+				}),
+			},
+		},
+		// Recursive fof
+		// tests that we can resolve deeply recursive rules
+		// f(a,b). f(b,c). f(c,d). f(d,e).
+		// fof(A,C) := f(A,C).
+		// fof(A,C) := f(A,B), fof(B,C).
+		// expect these bindings:
+		// A: a, C: b
+		// A: a, C: c
+		// A: a, C: d
+		// A: a, C: e
+		// A: b, C: c
+		// A: b, C: d
+		// A: b, C: e
+		// A: c, C: d
+		// A: c, C: e
+		// A: d, C: e
+		resolverTestCase{
+			"Recusrive FOF",
+			[]ast.Statement{
+				ast.CreateFact("f", ast.CreateAtom("a"), ast.CreateAtom("b")),
+				ast.CreateFact("f", ast.CreateAtom("b"), ast.CreateAtom("c")),
+				ast.CreateFact("f", ast.CreateAtom("c"), ast.CreateAtom("d")),
+				ast.CreateFact("f", ast.CreateAtom("d"), ast.CreateAtom("e")),
+				ast.CreateRule(
+					ast.CreateFact("fof", ast.CreateVariable("A"), ast.CreateVariable("C")),
+					// :=
+					ast.CreateFact("f", ast.CreateVariable("A"), ast.CreateVariable("C")),
+				),
+				ast.CreateRule(
+					ast.CreateFact("fof", ast.CreateVariable("A"), ast.CreateVariable("C")),
+					// :=
+					ast.CreateFact("f", ast.CreateVariable("A"), ast.CreateVariable("B")),
+					ast.CreateFact("fof", ast.CreateVariable("B"), ast.CreateVariable("C")),
+				),
+			},
+			&ast.Query{
+				ast.CreateFact("fof", ast.CreateVariable("A"), ast.CreateVariable("C")),
+			},
+			resolver.EmptyBindings(),
+			[]*resolver.Bindings{
+				resolver.CreateBindings(map[string]ast.Term{"A": ast.CreateAtom("a"), "C": ast.CreateAtom("b")}),
+				resolver.CreateBindings(map[string]ast.Term{"A": ast.CreateAtom("a"), "C": ast.CreateAtom("c")}),
+				resolver.CreateBindings(map[string]ast.Term{"A": ast.CreateAtom("a"), "C": ast.CreateAtom("d")}),
+				resolver.CreateBindings(map[string]ast.Term{"A": ast.CreateAtom("a"), "C": ast.CreateAtom("e")}),
+				resolver.CreateBindings(map[string]ast.Term{"A": ast.CreateAtom("b"), "C": ast.CreateAtom("c")}),
+				resolver.CreateBindings(map[string]ast.Term{"A": ast.CreateAtom("b"), "C": ast.CreateAtom("d")}),
+				resolver.CreateBindings(map[string]ast.Term{"A": ast.CreateAtom("b"), "C": ast.CreateAtom("e")}),
+				resolver.CreateBindings(map[string]ast.Term{"A": ast.CreateAtom("c"), "C": ast.CreateAtom("d")}),
+				resolver.CreateBindings(map[string]ast.Term{"A": ast.CreateAtom("c"), "C": ast.CreateAtom("e")}),
+				resolver.CreateBindings(map[string]ast.Term{"A": ast.CreateAtom("d"), "C": ast.CreateAtom("e")}),
 			},
 		},
 	}
