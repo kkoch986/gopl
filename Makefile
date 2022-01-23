@@ -1,6 +1,7 @@
 BIN_DIR=bin
 BIN_NAME=gopl
 PACKAGE_NAME=$(shell go list .)
+PACKAGES=$(shell go list ./...)
 SOURCE_DIR=.
 SOURCES=$(shell find $(SOURCE_DIR) -name '*.go')
 GO111MODULE?=on
@@ -34,9 +35,6 @@ $(BIN_DIR)/$(BIN_NAME): $(SOURCES)
 		-X $(PACKAGE_NAME)/version.GitCommit=$(shell git rev-parse --short HEAD)\
 		-X $(PACKAGE_NAME)/version.Version=$(shell git describe --abbrev=0 --tags 2> /dev/null || echo v0.0.1)"
 
-clean:
-	rm -rf $(BIN_DIR)
-
 go-lint:
 	$(eval GOLINT_INSTALLED := $(shell which golangci-lint))
 	@if [ "$(GOLINT_INSTALLED)" = "" ]; then \
@@ -45,3 +43,27 @@ go-lint:
 
 lint: go-lint
 	golangci-lint run
+
+
+test-cov: acc
+	GO111MODULE=$(GO111MODULE) go-acc -o coverage.txt $(PACKAGES)
+
+cov-html: test-cov
+	go tool cover -html=coverage.txt
+
+cov-func: test-cov
+	go tool cover -func=coverage.txt
+
+html-cov-report:
+	go tool cover -html=coverage.txt -o coverage.html
+
+clean:
+	rm -rf $(BIN_DIR)
+	rm -f .coverage*
+
+acc:
+	$(eval GO_ACC_INSTALLED := $(shell which go-acc))
+
+	@if [ "$(GO_ACC_INSTALLED)" = "" ]; then \
+		GO111MODULE=on go get -u github.com/ory/go-acc; \
+	fi;

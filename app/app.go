@@ -1,21 +1,11 @@
 package app
 
 import (
-	"errors"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/hashicorp/logutils"
 	"github.com/urfave/cli/v2"
-
-	"github.com/kkoch986/gopl/ast"
-	"github.com/kkoch986/gopl/indexer"
-	"github.com/kkoch986/gopl/lexer"
-	"github.com/kkoch986/gopl/parser"
-	"github.com/kkoch986/gopl/raw"
-	"github.com/kkoch986/gopl/resolver"
 )
 
 func enableLogger(ctx *cli.Context) {
@@ -23,7 +13,7 @@ func enableLogger(ctx *cli.Context) {
 	flags := log.LstdFlags | log.Lmicroseconds | log.LUTC | log.Llongfile
 	log.SetOutput(&logutils.LevelFilter{
 		Levels:   []logutils.LogLevel{"VERBOSE", "DEBUG", "INFO", "WARN", "ERROR"},
-		MinLevel: logutils.LogLevel(ctx.GlobalString("log-level")),
+		MinLevel: logutils.LogLevel(ctx.String("log-level")),
 		Writer:   out,
 	})
 

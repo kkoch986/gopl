@@ -14,7 +14,7 @@ type testCase struct {
 	ExpectedBindings []*resolver.Bindings
 }
 
-func runTestCase(c *testCase, t *testing.T) {
+func runUnifyTestCase(c *testCase, t *testing.T) {
 	r := &resolver.Equals{}
 	m := make(chan bool)
 	out := make(chan *resolver.Bindings)
@@ -100,7 +100,7 @@ func TestMatching(t *testing.T) {
 	}
 
 	for _, c := range testCases {
-		runTestCase(c, t)
+		runUnifyTestCase(c, t)
 	}
 }
 
@@ -191,7 +191,7 @@ func TestBasicTermResolution(t *testing.T) {
 	}
 
 	for _, c := range testCases {
-		runTestCase(c, t)
+		runUnifyTestCase(c, t)
 	}
 }
 
@@ -331,7 +331,7 @@ func TestSimpleTermVariableBinding(t *testing.T) {
 	}
 
 	for _, c := range testCases {
-		runTestCase(c, t)
+		runUnifyTestCase(c, t)
 	}
 }
 
@@ -390,6 +390,6 @@ func TestFactUnification(t *testing.T) {
 	}
 
 	for _, c := range testCases {
-		runTestCase(c, t)
+		runUnifyTestCase(c, t)
 	}
 }

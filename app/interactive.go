@@ -3,17 +3,20 @@ package app
 // Define the interactive shell used for querying
 
 import (
-	//	"errors"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 
-	"github.com/c-bata/go-prompt"
 	"github.com/urfave/cli/v2"
+	"github.com/c-bata/go-prompt"
 
 	"github.com/kkoch986/gopl/ast"
 	"github.com/kkoch986/gopl/indexer"
 	"github.com/kkoch986/gopl/lexer"
 	"github.com/kkoch986/gopl/parser"
+	"github.com/kkoch986/gopl/raw"
 	"github.com/kkoch986/gopl/resolver"
 )
 
